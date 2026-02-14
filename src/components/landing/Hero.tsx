@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import AuthSignupButton from "@/components/auth/AuthSignupButton";
 
 export default function Hero() {
   return (
@@ -20,16 +20,13 @@ export default function Hero() {
       </p>
 
       <div className="flex flex-wrap justify-center gap-3.5">
-        <Button
+        <AuthSignupButton
           size="lg"
           className="bg-budgetu-accent hover:bg-budgetu-accent-hover text-white font-semibold px-6 py-3.5 text-base"
-          asChild
         >
-          <Link href="/signup">
-            Get started free
-            <span className="ml-2">→</span>
-          </Link>
-        </Button>
+          Get started free
+          <span className="ml-2">→</span>
+        </AuthSignupButton>
         <Button
           variant="outline"
           size="lg"

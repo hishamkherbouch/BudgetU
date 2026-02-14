@@ -17,9 +17,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Unauthenticated user on protected pages → redirect to login
+  // Unauthenticated user on /signup or /login → redirect to home with auth modal
+  if (!user && path === "/signup") {
+    return NextResponse.redirect(new URL("/?auth=signup", request.url));
+  }
+  if (!user && path === "/login") {
+    return NextResponse.redirect(new URL("/?auth=login", request.url));
+  }
+
+  // Unauthenticated user on protected pages → redirect to login (home with auth modal)
   if (!user && isProtected) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/?auth=login", request.url));
   }
 
   return response;

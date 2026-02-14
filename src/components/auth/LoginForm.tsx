@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +15,8 @@ import {
 
 export default function LoginForm() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -103,9 +104,17 @@ export default function LoginForm() {
 
           <p className="text-center text-sm text-budgetu-body">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="font-medium text-budgetu-accent hover:underline">
+            <button
+              type="button"
+              className="font-medium text-budgetu-accent hover:underline"
+              onClick={() => {
+                const params = new URLSearchParams(searchParams.toString());
+                params.set("auth", "signup");
+                router.push(`${pathname || "/"}?${params.toString()}`);
+              }}
+            >
               Sign up
-            </Link>
+            </button>
           </p>
         </form>
       </CardContent>

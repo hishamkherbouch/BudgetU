@@ -1,7 +1,6 @@
-import Link from "next/link";
 import Header from "@/components/landing/Header";
+import AuthSignupButton from "@/components/auth/AuthSignupButton";
 import Footer from "@/components/landing/Footer";
-import { Button } from "@/components/ui/button";
 
 const faqs = [
   {
@@ -68,12 +67,11 @@ export default function FAQPage() {
           </dl>
 
           <div className="mt-12 text-center">
-            <Button
+            <AuthSignupButton
               className="bg-budgetu-accent hover:bg-budgetu-accent-hover text-white font-semibold"
-              asChild
             >
-              <Link href="/signup">Get started free</Link>
-            </Button>
+              Get started free
+            </AuthSignupButton>
           </div>
         </section>
       </main>
