@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx next build:*)",
+      "Bash(npx shadcn@latest init:*)",
+      "Bash(npx shadcn@latest add button card input select textarea tabs badge progress dialog -y)",
+      "Bash(npx next lint:*)",
+      "Bash(npx eslint:*)",
+      "Bash(test:*)",
+      "Bash(node -e:*)"
+    ]
+  }
+}
