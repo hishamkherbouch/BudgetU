@@ -9,7 +9,6 @@ import {
   updateDebtPayment,
 } from "@/lib/debts";
 import type { Debt, DebtPayment } from "@/lib/types";
-import { DEBT_TYPES } from "@/lib/types";
 import {
   Card,
   CardHeader,
@@ -93,9 +92,6 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
     setPayments([]);
   }
 
-  const getDebtTypeLabel = (type: Debt["debt_type"]) =>
-    DEBT_TYPES.find((t) => t.value === type)?.label ?? type;
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -114,11 +110,8 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
               >
                 ← Back to all debts
               </Button>
-              <CardTitle className="text-lg font-bold text-budgetu-heading flex items-center gap-2">
+              <CardTitle className="text-lg font-bold text-budgetu-heading">
                 {selectedDebt.name}
-                <Badge variant="secondary">
-                  {getDebtTypeLabel(selectedDebt.debt_type)}
-                </Badge>
               </CardTitle>
               <p className="text-sm text-budgetu-muted mt-1">
                 Balance: ${Number(selectedDebt.principal).toFixed(2)}
@@ -258,14 +251,9 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
                   }}
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-budgetu-heading truncate">
-                        {debt.name}
-                      </span>
-                      <Badge variant="secondary" className="shrink-0 text-xs">
-                        {getDebtTypeLabel(debt.debt_type)}
-                      </Badge>
-                    </div>
+                    <span className="text-sm font-medium text-budgetu-heading block truncate">
+                      {debt.name}
+                    </span>
                     <p className="text-xs text-budgetu-muted mt-0.5">
                       ${Number(debt.principal).toFixed(2)} owed
                       {debt.interest_rate > 0 && ` · ${debt.interest_rate}% APR`}

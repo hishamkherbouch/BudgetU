@@ -4,8 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { createDebt } from "@/lib/debts";
-import type { DebtType } from "@/lib/types";
-import { DEBT_TYPES } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,19 +13,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function AddDebtDialog() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [debtType, setDebtType] = useState<DebtType>("other");
   const [principal, setPrincipal] = useState("");
   const [interestRate, setInterestRate] = useState("");
   const [loanLength, setLoanLength] = useState("");
@@ -53,7 +43,7 @@ export default function AddDebtDialog() {
     const supabase = createClient();
     const result = await createDebt(supabase, {
       name,
-      debt_type: debtType,
+      debt_type: "other",
       principal: principalNum,
       interest_rate: isNaN(interestNum) ? 0 : interestNum,
       loan_length_months: loanLengthNum && !isNaN(loanLengthNum) ? loanLengthNum : null,
@@ -67,7 +57,6 @@ export default function AddDebtDialog() {
     }
 
     setName("");
-    setDebtType("other");
     setPrincipal("");
     setInterestRate("");
     setLoanLength("");
@@ -95,7 +84,7 @@ export default function AddDebtDialog() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="debt-name" className="text-sm font-medium text-budgetu-heading">
-              Name
+              Loan Name
             </label>
             <Input
               id="debt-name"
@@ -105,23 +94,6 @@ export default function AddDebtDialog() {
               onChange={(e) => setName(e.target.value)}
               required
             />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="debt-type" className="text-sm font-medium text-budgetu-heading">
-              Type
-            </label>
-            <Select value={debtType} onValueChange={(v) => setDebtType(v as DebtType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DEBT_TYPES.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           <div className="space-y-2">
             <label htmlFor="debt-principal" className="text-sm font-medium text-budgetu-heading">

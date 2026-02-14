@@ -6,14 +6,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { deleteDebt } from "@/lib/debts";
 import type { Debt } from "@/lib/types";
-import { DEBT_TYPES } from "@/lib/types";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, ChevronRight } from "lucide-react";
 import AddDebtDialog from "@/components/dashboard/AddDebtDialog";
@@ -34,9 +32,6 @@ export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
     }
     setDeletingId(null);
   }
-
-  const getDebtTypeLabel = (type: Debt["debt_type"]) =>
-    DEBT_TYPES.find((t) => t.value === type)?.label ?? type;
 
   return (
     <Card>
@@ -63,14 +58,9 @@ export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
                   className="flex items-center justify-between gap-2 p-3 rounded-lg bg-[#f9fafb] border border-border"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-budgetu-heading truncate">
-                        {debt.name}
-                      </span>
-                      <Badge variant="secondary" className="shrink-0 text-xs">
-                        {getDebtTypeLabel(debt.debt_type)}
-                      </Badge>
-                    </div>
+                    <span className="text-sm font-medium text-budgetu-heading block truncate">
+                      {debt.name}
+                    </span>
                     <p className="text-xs text-budgetu-muted mt-0.5">
                       ${principal.toFixed(2)} owed
                       {debt.interest_rate > 0 && ` · ${debt.interest_rate}% APR`}
