@@ -70,7 +70,7 @@ export default function DashboardPreview() {
               Monthly Overview
             </h3>
             <div className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-budgetu-positive">
-              <span aria-hidden>↓</span>
+              <span aria-hidden>↑</span>
               Spending down 12%
             </div>
           </div>
@@ -80,7 +80,10 @@ export default function DashboardPreview() {
               <span>1500</span>
               <span>1000</span>
             </div>
-            <div className="flex-1 bg-white border border-dashed border-border rounded-lg" />
+            <div
+              className="flex-1 bg-white border border-dashed border-border rounded-lg bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:20px_20px]"
+              aria-hidden
+            />
           </div>
         </div>
       </div>

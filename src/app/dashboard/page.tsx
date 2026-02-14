@@ -7,8 +7,6 @@ import SummaryCards from "@/components/dashboard/SummaryCards";
 import CategoryBreakdown from "@/components/dashboard/CategoryBreakdown";
 import SavingsGoals from "@/components/dashboard/SavingsGoals";
 import SpendingInsights from "@/components/dashboard/SpendingInsights";
-import ExpenseForm from "@/components/dashboard/ExpenseForm";
-import ExpenseList from "@/components/dashboard/ExpenseList";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -23,7 +21,6 @@ export default async function DashboardPage() {
     totalSpent,
     budgetRemaining,
     categoryTotals,
-    expenses,
   } = result.value;
 
   const goalsResult = await getSavingsGoals(supabase);
@@ -59,9 +56,6 @@ export default async function DashboardPage() {
       </div>
 
       <SpendingInsights insights={insights} />
-
-      <ExpenseForm />
-      <ExpenseList expenses={expenses} />
     </div>
   );
 }
