@@ -61,6 +61,31 @@ export async function getMonthExpenses(
   return ok((data ?? []) as Expense[]);
 }
 
+export async function getYearToDateExpenses(
+  supabase: SupabaseClient
+): Promise<Result<number>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const now = new Date();
+  const startDate = `${now.getFullYear()}-01-01`;
+
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("amount")
+    .eq("user_id", user.id)
+    .gte("date", startDate)
+    .lte("date", now.toISOString().split("T")[0]);
+
+  if (error) return err(error.message);
+
+  const total = (data ?? []).reduce((sum, row) => sum + Number(row.amount), 0);
+  return ok(total);
+}
+
 export async function deleteExpense(
   supabase: SupabaseClient,
   id: string

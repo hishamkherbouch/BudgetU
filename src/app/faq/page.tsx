@@ -70,7 +70,7 @@ export default function FAQPage() {
             <AuthSignupButton
               className="bg-budgetu-accent hover:bg-budgetu-accent-hover text-white font-semibold"
             >
-              Get started free
+              Get started for free
             </AuthSignupButton>
           </div>
         </section>

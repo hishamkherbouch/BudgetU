@@ -2,11 +2,14 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardData } from "@/lib/dashboard";
 import { getSavingsGoals } from "@/lib/savings-goals";
+import { getDebts } from "@/lib/debts";
 import { computeInsights } from "@/lib/insights";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import CategoryBreakdown from "@/components/dashboard/CategoryBreakdown";
 import SavingsGoals from "@/components/dashboard/SavingsGoals";
+import Debts from "@/components/dashboard/Debts";
 import SpendingInsights from "@/components/dashboard/SpendingInsights";
+import YearToDateOverview from "@/components/dashboard/YearToDateOverview";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -19,12 +22,18 @@ export default async function DashboardPage() {
   const {
     monthlyIncome,
     totalSpent,
+    totalSavingsThisMonth,
+    totalDebtPaymentsThisMonth,
     budgetRemaining,
     categoryTotals,
+    yearToDate,
   } = result.value;
 
   const goalsResult = await getSavingsGoals(supabase);
   const goals = goalsResult.ok ? goalsResult.value : [];
+
+  const debtsResult = await getDebts(supabase);
+  const debts = debtsResult.ok ? debtsResult.value : [];
 
   const insights = computeInsights(
     monthlyIncome,
@@ -47,12 +56,17 @@ export default async function DashboardPage() {
       <SummaryCards
         monthlyIncome={monthlyIncome}
         totalSpent={totalSpent}
+        totalSavingsThisMonth={totalSavingsThisMonth}
+        totalDebtPaymentsThisMonth={totalDebtPaymentsThisMonth}
         budgetRemaining={budgetRemaining}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <YearToDateOverview data={yearToDate} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <CategoryBreakdown categoryTotals={categoryTotals} />
         <SavingsGoals goals={goals} />
+        <Debts debts={debts} />
       </div>
 
       <SpendingInsights insights={insights} />

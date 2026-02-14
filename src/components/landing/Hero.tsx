@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import AuthSignupButton from "@/components/auth/AuthSignupButton";
 
 export default function Hero() {
@@ -24,16 +23,9 @@ export default function Hero() {
           size="lg"
           className="bg-budgetu-accent hover:bg-budgetu-accent-hover text-white font-semibold px-6 py-3.5 text-base"
         >
-          Get started free
+          Get started for free
           <span className="ml-2">→</span>
         </AuthSignupButton>
-        <Button
-          variant="outline"
-          size="lg"
-          className="font-semibold px-6 py-3.5 text-base"
-        >
-          See how it works
-        </Button>
       </div>
     </section>
   );

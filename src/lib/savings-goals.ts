@@ -68,6 +68,19 @@ export async function updateSavingsProgress(
   if (fetchError) return err(fetchError.message);
 
   const newAmount = (goal.current_amount ?? 0) + addAmount;
+  const today = new Date().toISOString().split("T")[0];
+
+  // Record contribution so it deducts from budget
+  const { error: contributionError } = await supabase
+    .from("savings_contributions")
+    .insert({
+      user_id: user.id,
+      goal_id: goalId,
+      amount: addAmount,
+      date: today,
+    });
+
+  if (contributionError) return err(contributionError.message);
 
   const { error } = await supabase
     .from("savings_goals")
@@ -80,6 +93,60 @@ export async function updateSavingsProgress(
 
   if (error) return err(error.message);
   return ok(null);
+}
+
+export async function getMonthSavingsContributions(
+  supabase: SupabaseClient,
+  year: number,
+  month: number
+): Promise<Result<number>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const endMonth = month === 12 ? 1 : month + 1;
+  const endYear = month === 12 ? year + 1 : year;
+  const endDate = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
+
+  const { data, error } = await supabase
+    .from("savings_contributions")
+    .select("amount")
+    .eq("user_id", user.id)
+    .gte("date", startDate)
+    .lt("date", endDate);
+
+  if (error) return err(error.message);
+
+  const total = (data ?? []).reduce((sum, row) => sum + Number(row.amount), 0);
+  return ok(total);
+}
+
+export async function getYearToDateSavings(
+  supabase: SupabaseClient
+): Promise<Result<number>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const now = new Date();
+  const startDate = `${now.getFullYear()}-01-01`;
+
+  const { data, error } = await supabase
+    .from("savings_contributions")
+    .select("amount")
+    .eq("user_id", user.id)
+    .gte("date", startDate)
+    .lte("date", now.toISOString().split("T")[0]);
+
+  if (error) return err(error.message);
+
+  const total = (data ?? []).reduce((sum, row) => sum + Number(row.amount), 0);
+  return ok(total);
 }
 
 export async function deleteSavingsGoal(
