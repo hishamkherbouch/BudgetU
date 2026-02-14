@@ -118,15 +118,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-
-      {/* Floating help button */}
-      <a
-        href="#"
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-budgetu-heading text-white flex items-center justify-center text-base sm:text-lg font-medium shadow-lg hover:bg-budgetu-accent transition-colors z-50"
-        aria-label="Help"
-      >
-        ?
-      </a>
     </footer>
   );
 }

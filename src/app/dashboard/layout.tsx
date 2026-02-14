@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/dashboard/DashboardNav";
+import Chatbot from "@/components/dashboard/Chatbot";
 
 export default async function DashboardLayout({
   children,
@@ -19,6 +20,7 @@ export default async function DashboardLayout({
         <DashboardNav displayName={displayName} />
         {children}
       </div>
+      <Chatbot />
     </div>
   );
 }
