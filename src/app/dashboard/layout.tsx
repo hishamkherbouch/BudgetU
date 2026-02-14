@@ -15,7 +15,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen w-full bg-budgetu-bg">
-      <div className="w-full max-w-7xl mx-auto bg-white min-h-screen shadow-lg px-6 py-6 md:px-10 md:py-8">
+      <div className="w-full max-w-7xl mx-auto bg-white min-h-screen shadow-lg px-4 py-6 sm:px-6 md:px-10 md:py-8">
         <DashboardNav displayName={displayName} />
         {children}
       </div>

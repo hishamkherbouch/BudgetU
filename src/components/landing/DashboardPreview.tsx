@@ -30,7 +30,7 @@ export default function DashboardPreview() {
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Spending by Category */}
         <div className="bg-[#f9fafb] border border-border rounded-xl p-5">
           <div className="flex items-center justify-between gap-3 mb-4">

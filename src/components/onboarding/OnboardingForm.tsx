@@ -83,7 +83,7 @@ export default function OnboardingForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-[95vw] sm:max-w-md">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold text-budgetu-heading">
           {step === 1 ? "Set up your budget" : "Set a savings goal"}

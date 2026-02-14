@@ -31,7 +31,7 @@ export default function Footer() {
     <footer className="w-full bg-budgetu-bg text-white mt-auto">
       <div className="w-full max-w-7xl mx-auto px-6 py-12 md:px-10">
         {/* Top section: 4 columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2 no-underline mb-3">
@@ -122,7 +122,7 @@ export default function Footer() {
       {/* Floating help button */}
       <a
         href="#"
-        className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-budgetu-heading text-white flex items-center justify-center text-lg font-medium shadow-lg hover:bg-budgetu-accent transition-colors z-50"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-budgetu-heading text-white flex items-center justify-center text-base sm:text-lg font-medium shadow-lg hover:bg-budgetu-accent transition-colors z-50"
         aria-label="Help"
       >
         ?

@@ -17,7 +17,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen w-full bg-budgetu-bg flex flex-col">
-      <main className="w-full max-w-7xl mx-auto bg-white min-h-screen shadow-lg px-6 py-6 md:px-10 md:py-8 flex-1">
+      <main className="w-full max-w-7xl mx-auto bg-white min-h-screen shadow-lg px-4 py-6 sm:px-6 md:px-10 md:py-8 flex-1">
         <Header />
         <Hero />
         <Testimonials />

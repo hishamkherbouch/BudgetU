@@ -44,11 +44,11 @@ const features = [
 export default function FeaturesPage() {
   return (
     <div className="min-h-screen w-full bg-budgetu-bg flex flex-col">
-      <main className="w-full max-w-7xl mx-auto bg-white min-h-screen shadow-lg px-6 py-6 md:px-10 md:py-8 flex-1">
+      <main className="w-full max-w-7xl mx-auto bg-white min-h-screen shadow-lg px-4 py-6 sm:px-6 md:px-10 md:py-8 flex-1">
         <Header />
 
         <section className="pt-4 pb-12">
-          <h1 className="text-budgetu-heading text-3xl md:text-4xl font-bold mb-2">
+          <h1 className="text-budgetu-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
             Everything you need to manage student finances
           </h1>
           <p className="text-budgetu-body text-lg max-w-2xl mb-10">
@@ -56,14 +56,14 @@ export default function FeaturesPage() {
             hit your savings goals—all in one place.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature) => (
               <article
                 key={feature.title}
                 className="border border-border rounded-xl p-6 bg-[#f9fafb] hover:border-budgetu-accent/30 transition-colors"
               >
                 <span
-                  className="text-3xl mb-3 block"
+                  className="text-2xl sm:text-3xl mb-3 block"
                   aria-hidden
                 >
                   {feature.icon}

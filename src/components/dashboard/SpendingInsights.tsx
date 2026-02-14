@@ -26,7 +26,7 @@ export default function SpendingInsights({
             <p className="text-sm text-budgetu-muted font-medium mb-1">
               Risk Score
             </p>
-            <p className={`text-4xl font-bold ${insights.riskColor}`}>
+            <p className={`text-2xl sm:text-4xl font-bold ${insights.riskColor}`}>
               {insights.riskScore}
             </p>
             <Badge
@@ -49,7 +49,7 @@ export default function SpendingInsights({
               Savings Rate
             </p>
             <p
-              className={`text-4xl font-bold ${
+              className={`text-2xl sm:text-4xl font-bold ${
                 insights.savingsRate >= 20
                   ? "text-budgetu-positive"
                   : insights.savingsRate >= 10
@@ -70,7 +70,7 @@ export default function SpendingInsights({
               Emergency Fund
             </p>
             <p
-              className={`text-4xl font-bold ${
+              className={`text-2xl sm:text-4xl font-bold ${
                 insights.hasEmergencyFund
                   ? "text-budgetu-positive"
                   : "text-budgetu-muted"

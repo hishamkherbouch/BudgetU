@@ -84,7 +84,7 @@ export default function Header() {
             aria-hidden
           />
           {/* Slide-in panel */}
-          <div className="absolute top-0 right-0 bottom-0 w-full max-w-[280px] bg-white shadow-xl flex flex-col p-6">
+          <div className="absolute top-0 right-0 bottom-0 w-4/5 max-w-[320px] bg-white shadow-xl flex flex-col p-6">
             <div className="flex justify-between items-center mb-8">
               <span className="text-budgetu-heading font-bold text-lg">Menu</span>
               <button
