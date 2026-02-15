@@ -48,7 +48,21 @@ Rules:
 - For dates, use today's date if the user doesn't specify one
 - Today's date is ${new Date().toISOString().split("T")[0]}
 - Mention "not financial advice" once per conversation (not every message)
-- ONLY output valid JSON, nothing else`;
+- ONLY output valid JSON, nothing else
+
+FINANCIAL REASONING RULES (follow these carefully for affordability and purchase questions):
+- NEVER use absolute language like "you can definitely afford", "you're all set", or "no problem". Use measured language like "this appears feasible", "the math works but consider...", or "this is possible, though it would be aggressive".
+- When evaluating large purchases or affordability:
+  1. Calculate the math (required savings, timeline, surplus).
+  2. Evaluate LIQUIDITY IMPACT: What percentage of total savings would this purchase consume? If > 50%, flag it clearly.
+  3. Evaluate EMERGENCY FUND HEALTH: Would the user still have 3 months of expenses covered after the purchase? If not, warn them.
+  4. Consider HIDDEN COSTS: For cars mention insurance/taxes/maintenance, for housing mention utilities/deposits, etc.
+  5. Consider OPPORTUNITY COST: Money spent on this can't go toward debt payoff or other goals.
+  6. Reference the user's DEBT situation: If they have high-interest debt, suggest prioritizing that.
+  7. Provide a clear VERDICT using one of: "comfortably feasible", "feasible but tight", "aggressive — high risk", or "not recommended right now".
+  8. Optionally suggest an alternative (e.g., lower amount, longer timeline, or saving more first).
+- If a purchase would exceed 25% of the user's total liquid savings (general savings + non-emergency goal balances), increase caution in your tone and recommend the user think carefully.
+- Always frame advice as considerations, not commands. You are a thinking partner, not a yes-machine.`;
 
 type ConversationMessage = {
   role: "user" | "assistant";
@@ -118,13 +132,41 @@ export async function POST(request: Request) {
 
     const generalSavings = Number(profile?.general_savings_balance ?? 0);
 
+    // Derived financial metrics for smarter AI reasoning
+    const monthlySurplus = income - totalSpent;
+    const savingsRate = income > 0 ? Math.round(((income - totalSpent) / income) * 100) : 0;
+
+    const emergencyFundGoals = goals.filter((g) => g.is_emergency_fund);
+    const emergencyFundTotal = emergencyFundGoals.reduce((s, g) => s + Number(g.current_amount), 0);
+    const emergencyFundTarget = totalSpent > 0 ? totalSpent * 3 : income * 3; // 3 months of expenses
+
+    const nonEmergencyGoalSavings = goals
+      .filter((g) => !g.is_emergency_fund)
+      .reduce((s, g) => s + Number(g.current_amount), 0);
+    const totalLiquidSavings = generalSavings + nonEmergencyGoalSavings;
+    const totalAllSavings = generalSavings + goals.reduce((s, g) => s + Number(g.current_amount), 0);
+
+    const totalDebtOwed = debts.reduce((s, d) => s + Number(d.principal), 0);
+    const totalMonthlyDebtPayments = debts.reduce((s, d) => s + Number(d.monthly_payment), 0);
+    const debtToIncomeRatio = income > 0 ? Math.round((totalMonthlyDebtPayments / income) * 100) : 0;
+
     const financialContext = `
 USER'S FINANCIAL DATA:
 - Monthly Income: $${income}
 - Total Spent This Month: $${totalSpent.toFixed(2)}
-- Budget Remaining: $${(income - totalSpent).toFixed(2)}
-- Savings Rate: ${income > 0 ? Math.round(((income - totalSpent) / income) * 100) : 0}%
+- Monthly Surplus: $${monthlySurplus.toFixed(2)}
+- Savings Rate: ${savingsRate}%
 - General Savings Balance: $${generalSavings.toFixed(2)}
+
+Derived Metrics (use these for reasoning):
+- Total Liquid Savings (general + non-emergency goals): $${totalLiquidSavings.toFixed(2)}
+- Total All Savings (including emergency fund): $${totalAllSavings.toFixed(2)}
+- Emergency Fund Balance: $${emergencyFundTotal.toFixed(2)}
+- Emergency Fund Target (3 months expenses): $${emergencyFundTarget.toFixed(2)}
+- Emergency Fund Health: ${emergencyFundTotal >= emergencyFundTarget ? "Healthy" : emergencyFundTotal > 0 ? `Underfunded (${Math.round((emergencyFundTotal / emergencyFundTarget) * 100)}% of target)` : "None"}
+- Total Debt Owed: $${totalDebtOwed.toFixed(2)}
+- Monthly Debt Payments: $${totalMonthlyDebtPayments.toFixed(2)}
+- Debt-to-Income Ratio: ${debtToIncomeRatio}%
 
 Category Breakdown:
 ${categoryBreakdown.length > 0 ? categoryBreakdown.map((c) => `  - ${c.category}: $${c.amount}`).join("\n") : "  No expenses yet this month"}
