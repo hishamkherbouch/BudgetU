@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bot, X, Send, Loader2 } from "lucide-react";
@@ -18,14 +17,45 @@ const STARTERS = [
   "Add $50 to my emergency fund",
 ];
 
+const STORAGE_KEY = "budgetu-chat";
+
+function saveChat(messages: Message[], isOpen: boolean) {
+  try {
+    sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ messages, isOpen })
+    );
+  } catch {
+    // sessionStorage not available
+  }
+}
+
+function loadChat(): { messages: Message[]; isOpen: boolean } | null {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    // sessionStorage not available
+  }
+  return null;
+}
+
 export default function Chatbot() {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Restore chat state after page reload
+  useEffect(() => {
+    const saved = loadChat();
+    if (saved) {
+      setMessages(saved.messages);
+      setOpen(saved.isOpen);
+    }
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,11 +67,22 @@ export default function Chatbot() {
     }
   }, [open]);
 
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    saveChat(messages, false);
+  }, [messages]);
+
+  const handleOpen = useCallback(() => {
+    setOpen(true);
+    saveChat(messages, true);
+  }, [messages]);
+
   async function sendMessage(text: string) {
     if (!text.trim() || loading) return;
 
     const userMessage: Message = { role: "user", content: text.trim() };
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setLoading(true);
 
@@ -68,14 +109,16 @@ export default function Chatbot() {
           content: data.data.reply,
           actionTaken: data.data.actionTaken,
         };
-        setMessages((prev) => [...prev, botMessage]);
+        const finalMessages = [...updatedMessages, botMessage];
+        setMessages(finalMessages);
 
-        // If an action was taken, refresh the dashboard data
+        // If an action was taken, save chat and reload to refresh dashboard
         if (data.data.actionTaken?.ok) {
-          // Small delay to let Supabase propagate, then hard refresh
+          saveChat(finalMessages, true);
           setTimeout(() => {
-            router.refresh();
-          }, 300);
+            window.location.reload();
+          }, 500);
+          return;
         }
       } else {
         setMessages((prev) => [
@@ -109,7 +152,7 @@ export default function Chatbot() {
       {/* Floating robot icon */}
       {!open && (
         <button
-          onClick={() => setOpen(true)}
+          onClick={handleOpen}
           className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-budgetu-accent hover:bg-budgetu-accent-hover text-white flex items-center justify-center shadow-lg z-50 transition-colors"
           aria-label="Open AI assistant"
         >
@@ -129,7 +172,7 @@ export default function Chatbot() {
               </span>
             </div>
             <button
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
               className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/15 transition-colors"
               aria-label="Close chat"
             >
