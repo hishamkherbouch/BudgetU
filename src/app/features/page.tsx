@@ -7,37 +7,31 @@ const features = [
     title: "Budget planner",
     description:
       "Set your monthly income and see how much you have left to spend. BudgetU shows your budget remaining in real time so you can stay on track without the guesswork.",
-    icon: "💰",
   },
   {
     title: "Expense tracker",
     description:
       "Log expenses by category—food, rent, transport, and more. View a clear breakdown of where your money goes and add notes to remember what each charge was for.",
-    icon: "📊",
   },
   {
     title: "Savings goals",
     description:
-      "Create goals for study abroad, emergencies, or anything else. Track progress and mark an emergency fund so you’re always prepared for the unexpected.",
-    icon: "🎯",
+      "Create goals for study abroad, emergencies, or anything else. Track progress and mark an emergency fund so you're always prepared for the unexpected.",
   },
   {
     title: "Spending insights",
     description:
       "Get simple insights on your spending habits, how close you are to your budget, and tips to improve. See which categories take the biggest share of your income.",
-    icon: "💡",
   },
   {
     title: "Category breakdown",
     description:
       "Visualize spending by category with progress bars and totals. Quickly spot which areas use the most of your budget so you can adjust before the month ends.",
-    icon: "📈",
   },
   {
     title: "Secure & simple",
     description:
       "Your data is stored securely and only you can see it. Sign up with email, set your income once in onboarding, and start tracking in minutes.",
-    icon: "🔒",
   },
 ];
 
@@ -62,12 +56,6 @@ export default function FeaturesPage() {
                 key={feature.title}
                 className="border border-border rounded-xl p-6 bg-[#f9fafb] hover:border-budgetu-accent/30 transition-colors"
               >
-                <span
-                  className="text-2xl sm:text-3xl mb-3 block"
-                  aria-hidden
-                >
-                  {feature.icon}
-                </span>
                 <h2 className="text-budgetu-heading text-xl font-bold mb-2">
                   {feature.title}
                 </h2>

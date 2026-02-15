@@ -9,14 +9,12 @@ const cards: {
   id: CardId;
   title: string;
   tagline: string;
-  icon: string;
   content: React.ReactNode;
 }[] = [
   {
     id: "emergency-fund",
     title: "Emergency fund",
     tagline: "Your safety net for when life throws a curveball",
-    icon: "🛡️",
     content: (
       <div className="space-y-4 text-budgetu-body text-sm leading-relaxed">
         <p>
@@ -66,7 +64,6 @@ const cards: {
     id: "high-yield-savings",
     title: "High-yield savings account (HYSA)",
     tagline: "Earn more on your savings with almost no extra effort",
-    icon: "📈",
     content: (
       <div className="space-y-4 text-budgetu-body text-sm leading-relaxed">
         <p>
@@ -113,7 +110,6 @@ const cards: {
     id: "roth-ira",
     title: "Roth IRA",
     tagline: "Tax-free growth for retirement—especially powerful when you're young",
-    icon: "🌱",
     content: (
       <div className="space-y-4 text-budgetu-body text-sm leading-relaxed">
         <p>
@@ -169,7 +165,6 @@ const cards: {
     id: "401k",
     title: "401(k)",
     tagline: "Employer retirement plans and why the match is free money",
-    icon: "💼",
     content: (
       <div className="space-y-4 text-budgetu-body text-sm leading-relaxed">
         <p>
@@ -229,7 +224,6 @@ const cards: {
     id: "investing-stocks",
     title: "Investing in stocks (basics)",
     tagline: "Owning a piece of companies and growing your money over the long term",
-    icon: "📊",
     content: (
       <div className="space-y-4 text-budgetu-body text-sm leading-relaxed">
         <p>
@@ -315,9 +309,6 @@ export default function EducationCards() {
               id={`education-card-${card.id}`}
             >
               <div className="flex items-start gap-4">
-                <span className="text-3xl shrink-0" aria-hidden>
-                  {card.icon}
-                </span>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-budgetu-heading text-xl font-bold">
                     {card.title}
