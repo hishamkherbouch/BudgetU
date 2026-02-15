@@ -63,7 +63,7 @@ export default function AddDebtDialog() {
     setMonthlyPayment("");
     setLoading(false);
     setOpen(false);
-    router.refresh();
+    window.location.reload();
   }
 
   return (

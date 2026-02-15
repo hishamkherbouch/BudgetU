@@ -62,7 +62,7 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
     const result = await deleteDebtPayment(supabase, paymentId, debtId);
     if (result.ok) {
       setPayments((prev) => prev.filter((p) => p.id !== paymentId));
-      router.refresh();
+      window.location.reload();
     }
     setDeletingId(null);
   }
@@ -83,7 +83,7 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
         )
       );
       setEditingPaymentId(null);
-      router.refresh();
+      window.location.reload();
     }
   }
 

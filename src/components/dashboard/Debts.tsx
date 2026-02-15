@@ -28,7 +28,7 @@ export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
     const result = await deleteDebt(supabase, id);
     if (result.ok) {
       setDebts((prev) => prev.filter((d) => d.id !== id));
-      router.refresh();
+      window.location.reload();
     }
     setDeletingId(null);
   }

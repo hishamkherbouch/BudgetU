@@ -68,7 +68,7 @@ export default function ExpenseForm() {
     setDescription("");
     setDate(new Date().toISOString().split("T")[0]);
     setLoading(false);
-    router.refresh();
+    window.location.reload();
   }
 
   return (

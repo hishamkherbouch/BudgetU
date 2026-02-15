@@ -32,7 +32,7 @@ export default function ExpenseList({
 
     if (result.ok) {
       setExpenses((prev) => prev.filter((e) => e.id !== id));
-      router.refresh();
+      window.location.reload();
     }
     setDeletingId(null);
   }

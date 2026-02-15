@@ -62,7 +62,7 @@ export default function AddDebtPaymentDialog({
     setNotes("");
     setLoading(false);
     setOpen(false);
-    router.refresh();
+    window.location.reload();
   }
 
   return (

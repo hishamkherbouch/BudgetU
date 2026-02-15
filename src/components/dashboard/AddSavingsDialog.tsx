@@ -50,7 +50,7 @@ export default function AddSavingsDialog({
     setAmount("");
     setLoading(false);
     setOpen(false);
-    router.refresh();
+    window.location.reload();
   }
 
   return (

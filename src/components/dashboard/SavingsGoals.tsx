@@ -33,7 +33,7 @@ export default function SavingsGoals({
     const result = await deleteSavingsGoal(supabase, id);
     if (result.ok) {
       setGoals((prev) => prev.filter((g) => g.id !== id));
-      router.refresh();
+      window.location.reload();
     }
     setDeletingId(null);
   }
