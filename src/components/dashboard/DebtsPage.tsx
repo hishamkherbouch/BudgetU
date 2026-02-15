@@ -142,7 +142,7 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
                 {payments.map((payment) => (
                   <li
                     key={payment.id}
-                    className="flex items-center justify-between gap-4 p-3 rounded-lg bg-[#f9fafb] border border-border"
+                    className="flex items-center justify-between gap-4 p-3 rounded-lg bg-budgetu-surface-alt border border-border"
                   >
                     {editingPaymentId === payment.id ? (
                       <div className="flex items-center gap-2 flex-1">
@@ -243,7 +243,7 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
                   className={`flex items-center justify-between gap-2 p-4 rounded-lg border cursor-pointer transition-colors ${
                     selectedDebtId === debt.id
                       ? "border-budgetu-accent bg-budgetu-accent/5"
-                      : "border-border bg-[#f9fafb] hover:border-budgetu-accent/30"
+                      : "border-border bg-budgetu-surface-alt hover:border-budgetu-accent/30"
                   }`}
                   onClick={() => {
                     router.push(`/dashboard/debt?debt=${debt.id}`);

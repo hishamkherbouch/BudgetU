@@ -162,7 +162,7 @@ export default function Chatbot() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 w-full sm:w-[400px] h-[100dvh] sm:h-[520px] bg-white sm:rounded-xl shadow-2xl border border-border flex flex-col z-50">
+        <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 w-full sm:w-[400px] h-[100dvh] sm:h-[520px] bg-budgetu-surface sm:rounded-xl shadow-2xl border border-border flex flex-col z-50">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-budgetu-accent sm:rounded-t-xl">
             <div className="flex items-center gap-2">
@@ -214,7 +214,7 @@ export default function Chatbot() {
                   className={`max-w-[85%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
                     msg.role === "user"
                       ? "bg-budgetu-accent text-white"
-                      : "bg-[#f3f4f6] text-budgetu-heading"
+                      : "bg-budgetu-surface-alt text-budgetu-heading"
                   }`}
                 >
                   {msg.content}
@@ -236,7 +236,7 @@ export default function Chatbot() {
 
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-[#f3f4f6] rounded-xl px-3 py-2">
+                <div className="bg-budgetu-surface-alt rounded-xl px-3 py-2">
                   <Loader2 className="w-4 h-4 animate-spin text-budgetu-accent" />
                 </div>
               </div>

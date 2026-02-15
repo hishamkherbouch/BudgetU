@@ -38,7 +38,7 @@ const faqs = [
 export default function FAQPage() {
   return (
     <div className="min-h-screen w-full bg-budgetu-bg flex flex-col">
-      <main className="w-full max-w-7xl mx-auto bg-white min-h-screen shadow-lg px-4 py-6 sm:px-6 md:px-10 md:py-8 flex-1">
+      <main className="w-full max-w-7xl mx-auto bg-budgetu-surface min-h-screen shadow-lg px-4 py-6 sm:px-6 md:px-10 md:py-8 flex-1">
         <Header />
 
         <section className="pt-4 pb-12">
@@ -54,7 +54,7 @@ export default function FAQPage() {
             {faqs.map((faq) => (
               <div
                 key={faq.question}
-                className="border border-border rounded-xl p-6 bg-[#f9fafb]"
+                className="border border-border rounded-xl p-6 bg-budgetu-surface-alt"
               >
                 <dt className="text-budgetu-heading font-bold text-lg mb-2">
                   {faq.question}

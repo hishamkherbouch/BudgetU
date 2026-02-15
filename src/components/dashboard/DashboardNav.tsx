@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function DashboardNav({
   displayName,
@@ -69,6 +70,7 @@ export default function DashboardNav({
             {displayName}
           </span>
         )}
+        <ThemeToggle />
         <Button
           variant="ghost"
           className="text-budgetu-body font-semibold"
@@ -101,7 +103,7 @@ export default function DashboardNav({
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden
           />
-          <div className="absolute top-0 right-0 bottom-0 w-4/5 max-w-[320px] bg-white shadow-xl flex flex-col p-6">
+          <div className="absolute top-0 right-0 bottom-0 w-4/5 max-w-[320px] bg-budgetu-surface shadow-xl flex flex-col p-6">
             <div className="flex justify-between items-center mb-8">
               <span className="text-budgetu-heading font-bold text-lg">Menu</span>
               <button
@@ -140,7 +142,11 @@ export default function DashboardNav({
                 );
               })}
             </nav>
-            <div className="mt-6 pt-6 border-t border-border">
+            <div className="mt-6 pt-6 border-t border-border space-y-2">
+              <div className="flex items-center justify-between px-4">
+                <span className="text-sm text-budgetu-body">Theme</span>
+                <ThemeToggle />
+              </div>
               <Button
                 variant="ghost"
                 className="w-full justify-center text-budgetu-body font-semibold"

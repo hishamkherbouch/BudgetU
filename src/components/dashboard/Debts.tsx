@@ -55,7 +55,7 @@ export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
               return (
                 <div
                   key={debt.id}
-                  className="flex items-center justify-between gap-2 p-3 rounded-lg bg-[#f9fafb] border border-border"
+                  className="flex items-center justify-between gap-2 p-3 rounded-lg bg-budgetu-surface-alt border border-border"
                 >
                   <div className="min-w-0 flex-1">
                     <span className="text-sm font-medium text-budgetu-heading block truncate">

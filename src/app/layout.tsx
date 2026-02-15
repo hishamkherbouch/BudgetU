@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import AuthModal from "@/components/auth/AuthModal";
+import ThemeProvider from "@/components/ThemeProvider";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -21,10 +22,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(localStorage.getItem("budgetu-theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className={`${dmSans.variable} antialiased`}>
-        {children}
-        <AuthModal />
+        <ThemeProvider>
+          {children}
+          <AuthModal />
+        </ThemeProvider>
       </body>
     </html>
   );

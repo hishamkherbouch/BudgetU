@@ -60,7 +60,7 @@ export default function Testimonials() {
         {testimonials.map((t) => (
           <article
             key={t.name}
-            className="bg-white rounded-xl border border-border shadow-sm p-6 flex flex-col"
+            className="bg-budgetu-surface rounded-xl border border-border shadow-sm p-6 flex flex-col"
           >
             <StarRating />
             <p className="text-budgetu-heading text-[0.9375rem] leading-relaxed flex-1 mb-5">

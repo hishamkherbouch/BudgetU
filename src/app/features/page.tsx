@@ -38,7 +38,7 @@ const features = [
 export default function FeaturesPage() {
   return (
     <div className="min-h-screen w-full bg-budgetu-bg flex flex-col">
-      <main className="w-full max-w-7xl mx-auto bg-white min-h-screen shadow-lg px-4 py-6 sm:px-6 md:px-10 md:py-8 flex-1">
+      <main className="w-full max-w-7xl mx-auto bg-budgetu-surface min-h-screen shadow-lg px-4 py-6 sm:px-6 md:px-10 md:py-8 flex-1">
         <Header />
 
         <section className="pt-4 pb-12">
@@ -54,7 +54,7 @@ export default function FeaturesPage() {
             {features.map((feature) => (
               <article
                 key={feature.title}
-                className="border border-border rounded-xl p-6 bg-[#f9fafb] hover:border-budgetu-accent/30 transition-colors"
+                className="border border-border rounded-xl p-6 bg-budgetu-surface-alt hover:border-budgetu-accent/30 transition-colors"
               >
                 <h2 className="text-budgetu-heading text-xl font-bold mb-2">
                   {feature.title}

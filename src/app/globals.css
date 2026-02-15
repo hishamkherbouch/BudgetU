@@ -45,21 +45,35 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* BudgetU custom colors */
-  --color-budgetu-bg: #1e1e1e;
-  --color-budgetu-accent: #6366f1;
-  --color-budgetu-accent-hover: #4f46e5;
-  --color-budgetu-accent-light: #a5b4fc;
-  --color-budgetu-accent-mid: #818cf8;
-  --color-budgetu-accent-deep: #4338ca;
-  --color-budgetu-positive: #059669;
-  --color-budgetu-heading: #1f2937;
-  --color-budgetu-body: #6b7280;
-  --color-budgetu-muted: #9ca3af;
+  /* BudgetU custom colors (resolved via CSS variables for theming) */
+  --color-budgetu-bg: var(--budgetu-bg);
+  --color-budgetu-accent: var(--budgetu-accent);
+  --color-budgetu-accent-hover: var(--budgetu-accent-hover);
+  --color-budgetu-accent-light: var(--budgetu-accent-light);
+  --color-budgetu-accent-mid: var(--budgetu-accent-mid);
+  --color-budgetu-accent-deep: var(--budgetu-accent-deep);
+  --color-budgetu-positive: var(--budgetu-positive);
+  --color-budgetu-heading: var(--budgetu-heading);
+  --color-budgetu-body: var(--budgetu-body);
+  --color-budgetu-muted: var(--budgetu-muted);
+  --color-budgetu-surface: var(--budgetu-surface);
+  --color-budgetu-surface-alt: var(--budgetu-surface-alt);
 }
 
 :root {
   --radius: 0.75rem;
+  --budgetu-bg: #f3f4f6;
+  --budgetu-accent: #6366f1;
+  --budgetu-accent-hover: #4f46e5;
+  --budgetu-accent-light: #a5b4fc;
+  --budgetu-accent-mid: #818cf8;
+  --budgetu-accent-deep: #4338ca;
+  --budgetu-positive: #059669;
+  --budgetu-heading: #1f2937;
+  --budgetu-body: #6b7280;
+  --budgetu-muted: #9ca3af;
+  --budgetu-surface: #ffffff;
+  --budgetu-surface-alt: #f9fafb;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -94,6 +108,18 @@
 }
 
 .dark {
+  --budgetu-bg: #0f0f0f;
+  --budgetu-accent: #818cf8;
+  --budgetu-accent-hover: #6366f1;
+  --budgetu-accent-light: #6366f1;
+  --budgetu-accent-mid: #a5b4fc;
+  --budgetu-accent-deep: #6366f1;
+  --budgetu-positive: #34d399;
+  --budgetu-heading: #f3f4f6;
+  --budgetu-body: #9ca3af;
+  --budgetu-muted: #6b7280;
+  --budgetu-surface: #1a1a2e;
+  --budgetu-surface-alt: #222238;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

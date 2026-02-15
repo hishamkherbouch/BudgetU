@@ -291,7 +291,7 @@ export default function EducationCards() {
         return (
           <article
             key={card.id}
-            className="border border-border rounded-xl overflow-hidden bg-white hover:border-budgetu-accent/30 transition-colors"
+            className="border border-border rounded-xl overflow-hidden bg-budgetu-surface hover:border-budgetu-accent/30 transition-colors"
           >
             <div
               className="p-6 cursor-pointer"
@@ -334,7 +334,7 @@ export default function EducationCards() {
                 id={`education-content-${card.id}`}
                 role="region"
                 aria-labelledby={`education-card-${card.id}`}
-                className="border-t border-border bg-[#f9fafb] px-6 py-5"
+                className="border-t border-border bg-budgetu-surface-alt px-6 py-5"
               >
                 {card.content}
               </div>

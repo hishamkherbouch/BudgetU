@@ -32,7 +32,7 @@ export default function DashboardPreview() {
       {/* Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Spending by Category */}
-        <div className="bg-[#f9fafb] border border-border rounded-xl p-5">
+        <div className="bg-budgetu-surface-alt border border-border rounded-xl p-5">
           <div className="flex items-center justify-between gap-3 mb-4">
             <h3 className="text-base font-bold text-budgetu-heading">
               Spending by Category
@@ -64,7 +64,7 @@ export default function DashboardPreview() {
         </div>
 
         {/* Monthly Overview */}
-        <div className="bg-[#f9fafb] border border-border rounded-xl p-5">
+        <div className="bg-budgetu-surface-alt border border-border rounded-xl p-5">
           <div className="flex items-center justify-between gap-3 mb-4">
             <h3 className="text-base font-bold text-budgetu-heading">
               Monthly Overview
@@ -81,7 +81,7 @@ export default function DashboardPreview() {
               <span>1000</span>
             </div>
             <div
-              className="flex-1 bg-white border border-dashed border-border rounded-lg bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:20px_20px]"
+              className="flex-1 bg-budgetu-surface border border-dashed border-border rounded-lg"
               aria-hidden
             />
           </div>

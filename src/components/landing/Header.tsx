@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -45,6 +46,7 @@ export default function Header() {
 
       {/* Desktop auth buttons */}
       <div className="hidden md:flex items-center gap-3 shrink-0">
+        <ThemeToggle />
         <Button
           variant="ghost"
           className="text-budgetu-body font-semibold"
@@ -84,7 +86,7 @@ export default function Header() {
             aria-hidden
           />
           {/* Slide-in panel */}
-          <div className="absolute top-0 right-0 bottom-0 w-4/5 max-w-[320px] bg-white shadow-xl flex flex-col p-6">
+          <div className="absolute top-0 right-0 bottom-0 w-4/5 max-w-[320px] bg-budgetu-surface shadow-xl flex flex-col p-6">
             <div className="flex justify-between items-center mb-8">
               <span className="text-budgetu-heading font-bold text-lg">Menu</span>
               <button
@@ -109,6 +111,10 @@ export default function Header() {
               ))}
             </nav>
             <div className="mt-6 pt-6 border-t border-border flex flex-col gap-2">
+              <div className="flex items-center justify-between px-4 mb-2">
+                <span className="text-sm text-budgetu-body">Theme</span>
+                <ThemeToggle />
+              </div>
               <Button
                 variant="ghost"
                 className="w-full justify-center text-budgetu-body font-semibold"
