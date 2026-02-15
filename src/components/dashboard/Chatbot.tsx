@@ -72,7 +72,10 @@ export default function Chatbot() {
 
         // If an action was taken, refresh the dashboard data
         if (data.data.actionTaken?.ok) {
-          router.refresh();
+          // Small delay to let Supabase propagate, then hard refresh
+          setTimeout(() => {
+            router.refresh();
+          }, 300);
         }
       } else {
         setMessages((prev) => [
