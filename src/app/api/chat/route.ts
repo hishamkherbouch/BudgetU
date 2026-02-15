@@ -12,7 +12,13 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const SYSTEM_PROMPT = `You are BudgetU, a friendly financial assistant for college students.
 You have access to the user's financial data (provided below).
 
-IMPORTANT: You MUST respond with valid JSON only. No markdown, no code fences, no extra text.
+CRITICAL OUTPUT FORMAT RULES:
+- You MUST respond with a SINGLE valid JSON object and NOTHING ELSE.
+- No markdown, no code fences, no extra text before or after the JSON.
+- No "thinking out loud" — do not write explanations outside the JSON object.
+- Do not nest JSON inside natural language text.
+- Your ENTIRE response must be parseable by JSON.parse().
+- If you are unsure, just output: { "reply": "your message here" }
 
 When the user wants to perform an action, respond with this JSON:
 {
@@ -48,7 +54,7 @@ Rules:
 - For dates, use today's date if the user doesn't specify one
 - Today's date is ${new Date().toISOString().split("T")[0]}
 - Mention "not financial advice" once per conversation (not every message)
-- ONLY output valid JSON, nothing else
+- Your ENTIRE output must be a single JSON object — no text outside the braces
 
 FINANCIAL REASONING RULES (follow these carefully for affordability and purchase questions):
 - NEVER use absolute language like "you can definitely afford", "you're all set", or "no problem". Use measured language like "this appears feasible", "the math works but consider...", or "this is possible, though it would be aggressive".
@@ -68,6 +74,65 @@ type ConversationMessage = {
   role: "user" | "assistant";
   content: string;
 };
+
+type ParsedResponse = { reply: string; action?: ChatAction };
+
+/** Try to parse a string as JSON, stripping code fences first. */
+function tryParseJson(text: string): ParsedResponse {
+  try {
+    const cleaned = text
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+    const obj = JSON.parse(cleaned);
+    if (obj && typeof obj.reply === "string") return obj;
+    return { reply: text };
+  } catch {
+    return { reply: text };
+  }
+}
+
+/** Extract the first balanced {...} JSON object from mixed text. */
+function extractJsonObject(text: string): ParsedResponse | null {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escape = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (ch === "{") depth++;
+    else if (ch === "}") {
+      depth--;
+      if (depth === 0) {
+        try {
+          const obj = JSON.parse(text.slice(start, i + 1));
+          if (obj && typeof obj.reply === "string") return obj;
+        } catch {
+          // not valid JSON, continue looking
+        }
+        return null;
+      }
+    }
+  }
+  return null;
+}
 
 export async function POST(request: Request) {
   try {
@@ -197,19 +262,37 @@ ${debts.length > 0 ? debts.map((d) => `  - "${d.name}" (${d.debt_type}): $${Numb
     const result = await chat.sendMessage(message);
     const responseText = result.response.text().trim();
 
-    // Parse Gemini's JSON response
+    // Robust JSON parsing with 3-tier fallback
     let parsed: { reply: string; action?: ChatAction };
-    try {
-      // Strip markdown code fences if present
-      const cleaned = responseText
-        .replace(/^```json\s*/i, "")
-        .replace(/^```\s*/i, "")
-        .replace(/\s*```$/i, "")
-        .trim();
-      parsed = JSON.parse(cleaned);
-    } catch {
-      // If JSON parsing fails, treat the whole response as the reply
-      parsed = { reply: responseText };
+    parsed = tryParseJson(responseText);
+
+    // If direct parse failed, try extracting the first JSON object from the text
+    if (!parsed.action && parsed.reply === responseText) {
+      const extracted = extractJsonObject(responseText);
+      if (extracted) {
+        parsed = extracted;
+      } else {
+        // Retry: ask Gemini to fix its output
+        try {
+          const repairResult = await chat.sendMessage(
+            `Your last output was not valid JSON. Return ONLY a valid JSON object matching the schema: { "reply": "..." } or { "reply": "...", "action": { "type": "...", "params": { ... } } }. No extra text. Fix this output:\n\n${responseText}`
+          );
+          const repairText = repairResult.response.text().trim();
+          const repaired = tryParseJson(repairText);
+          if (repaired.reply !== repairText) {
+            parsed = repaired;
+          } else {
+            const extractedRepair = extractJsonObject(repairText);
+            if (extractedRepair) {
+              parsed = extractedRepair;
+            } else {
+              parsed = { reply: "Sorry — I had trouble formatting that. Can you rephrase?" };
+            }
+          }
+        } catch {
+          parsed = { reply: "Sorry — I had trouble formatting that. Can you rephrase?" };
+        }
+      }
     }
 
     // Execute action if present
