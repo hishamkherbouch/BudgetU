@@ -20,8 +20,10 @@ import AddSavingsDialog from "@/components/dashboard/AddSavingsDialog";
 
 export default function SavingsGoals({
   goals: initialGoals,
+  generalSavings = 0,
 }: {
   goals: SavingsGoal[];
+  generalSavings?: number;
 }) {
   const router = useRouter();
   const [goals, setGoals] = useState(initialGoals);
@@ -47,11 +49,26 @@ export default function SavingsGoals({
         <AddGoalDialog />
       </CardHeader>
       <CardContent>
-        {goals.length === 0 ? (
+        {generalSavings > 0 && (
+          <div className="mb-4 p-3 rounded-lg bg-budgetu-accent/10 border border-budgetu-accent/20">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-budgetu-heading">
+                General Savings
+              </span>
+              <span className="text-sm font-semibold text-budgetu-accent">
+                ${generalSavings.toFixed(2)}
+              </span>
+            </div>
+            <p className="text-xs text-budgetu-muted mt-1">
+              Unallocated savings not tied to a specific goal
+            </p>
+          </div>
+        )}
+        {goals.length === 0 && generalSavings <= 0 ? (
           <p className="text-budgetu-muted text-sm">
             No savings goals yet. Create one to start tracking!
           </p>
-        ) : (
+        ) : goals.length === 0 ? null : (
           <div className="space-y-5">
             {goals.map((goal) => {
               const current = Number(goal.current_amount);

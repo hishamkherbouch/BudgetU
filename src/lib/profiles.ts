@@ -39,3 +39,59 @@ export async function updateMonthlyIncome(
   if (error) return err(error.message);
   return ok(null);
 }
+
+export async function updateGeneralSavings(
+  supabase: SupabaseClient,
+  amount: number
+): Promise<Result<null>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  // Fetch current balance first
+  const { data: profile, error: fetchError } = await supabase
+    .from("profiles")
+    .select("general_savings_balance")
+    .eq("id", user.id)
+    .single();
+
+  if (fetchError) return err(fetchError.message);
+
+  const current = Number(profile.general_savings_balance ?? 0);
+  const newBalance = current + amount;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      general_savings_balance: newBalance,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+
+  if (error) return err(error.message);
+  return ok(null);
+}
+
+export async function setGeneralSavings(
+  supabase: SupabaseClient,
+  amount: number
+): Promise<Result<null>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      general_savings_balance: amount,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+
+  if (error) return err(error.message);
+  return ok(null);
+}

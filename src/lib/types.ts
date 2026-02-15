@@ -2,6 +2,7 @@ export type Profile = {
   id: string;
   display_name: string | null;
   monthly_income: number;
+  general_savings_balance: number;
   created_at: string;
   updated_at: string;
 };

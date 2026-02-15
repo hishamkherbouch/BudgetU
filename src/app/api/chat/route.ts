@@ -18,7 +18,7 @@ When the user wants to perform an action, respond with this JSON:
 {
   "reply": "your conversational response confirming what you did",
   "action": {
-    "type": "add_expense" | "update_income" | "add_savings" | "create_goal" | "add_debt" | "add_debt_payment",
+    "type": "add_expense" | "update_income" | "add_savings" | "create_goal" | "add_debt" | "add_debt_payment" | "update_general_savings" | "set_general_savings",
     "params": { ... }
   }
 }
@@ -36,6 +36,10 @@ Action parameter schemas:
 - create_goal: { "name": string, "targetAmount": number, "isEmergencyFund": boolean }
 - add_debt: { "name": string, "debtType": "student_loan" | "credit_card" | "car_loan" | "other", "principal": number, "interestRate": number, "monthlyPayment": number }
 - add_debt_payment: { "debtName": string (must match an existing debt name), "amount": number }
+- update_general_savings: { "amount": number } — adds the amount to the user's general (unallocated) savings balance. Use this when the user says they saved money but it's not for a specific goal.
+- set_general_savings: { "amount": number } — sets the general savings balance to an exact amount. Use this when the user says "my savings are $X" or "set my savings to $X".
+
+IMPORTANT: When a user mentions saving money WITHOUT specifying a goal name, use "update_general_savings" (NOT "add_savings" or "create_goal"). Only use "add_savings" when they name a specific existing goal.
 
 Rules:
 - Be short, friendly, non-judgmental, and specific
@@ -112,12 +116,15 @@ export async function POST(request: Request) {
       .map(([cat, amt]) => ({ category: cat, amount: Math.round(amt * 100) / 100 }))
       .sort((a, b) => b.amount - a.amount);
 
+    const generalSavings = Number(profile?.general_savings_balance ?? 0);
+
     const financialContext = `
 USER'S FINANCIAL DATA:
 - Monthly Income: $${income}
 - Total Spent This Month: $${totalSpent.toFixed(2)}
 - Budget Remaining: $${(income - totalSpent).toFixed(2)}
 - Savings Rate: ${income > 0 ? Math.round(((income - totalSpent) / income) * 100) : 0}%
+- General Savings Balance: $${generalSavings.toFixed(2)}
 
 Category Breakdown:
 ${categoryBreakdown.length > 0 ? categoryBreakdown.map((c) => `  - ${c.category}: $${c.amount}`).join("\n") : "  No expenses yet this month"}

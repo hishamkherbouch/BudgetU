@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { addExpense } from "@/lib/expenses";
-import { updateMonthlyIncome } from "@/lib/profiles";
+import { updateMonthlyIncome, updateGeneralSavings, setGeneralSavings } from "@/lib/profiles";
 import {
   createSavingsGoal,
   getSavingsGoals,
@@ -16,7 +16,9 @@ export type ChatAction = {
     | "add_savings"
     | "create_goal"
     | "add_debt"
-    | "add_debt_payment";
+    | "add_debt_payment"
+    | "update_general_savings"
+    | "set_general_savings";
   params: Record<string, unknown>;
 };
 
@@ -141,6 +143,26 @@ export async function executeAction(
         return {
           ok: true,
           message: `Recorded $${amount} payment on "${debt.name}"`,
+        };
+      }
+
+      case "update_general_savings": {
+        const { amount } = action.params as { amount: number };
+        const result = await updateGeneralSavings(supabase, amount);
+        if (!result.ok) return { ok: false, message: result.error };
+        return {
+          ok: true,
+          message: `Added $${amount} to general savings`,
+        };
+      }
+
+      case "set_general_savings": {
+        const { amount } = action.params as { amount: number };
+        const result = await setGeneralSavings(supabase, amount);
+        if (!result.ok) return { ok: false, message: result.error };
+        return {
+          ok: true,
+          message: `Set general savings balance to $${amount}`,
         };
       }
 

@@ -29,6 +29,7 @@ export default async function DashboardPage() {
     budgetRemaining,
     categoryTotals,
     yearToDate,
+    profile,
   } = result.value;
 
   const goalsResult = await getSavingsGoals(supabase);
@@ -67,7 +68,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <CategoryBreakdown categoryTotals={categoryTotals} />
-        <SavingsGoals goals={goals} />
+        <SavingsGoals goals={goals} generalSavings={Number(profile.general_savings_balance ?? 0)} />
         <Debts debts={debts} />
       </div>
 
