@@ -130,17 +130,20 @@ ${debts.length > 0 ? debts.map((d) => `  - "${d.name}" (${d.debt_type}): $${Numb
 `;
 
     // Build Gemini conversation
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+      systemInstruction: {
+        role: "user",
+        parts: [{ text: SYSTEM_PROMPT + "\n" + financialContext }],
+      },
+    });
 
     const history = (conversationHistory || []).map((msg: ConversationMessage) => ({
       role: msg.role === "assistant" ? "model" as const : "user" as const,
       parts: [{ text: msg.content }],
     }));
 
-    const chat = model.startChat({
-      history,
-      systemInstruction: SYSTEM_PROMPT + "\n" + financialContext,
-    });
+    const chat = model.startChat({ history });
 
     const result = await chat.sendMessage(message);
     const responseText = result.response.text().trim();
