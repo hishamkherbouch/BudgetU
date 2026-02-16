@@ -8,7 +8,15 @@
       "Bash(npx next lint:*)",
       "Bash(npx eslint:*)",
       "Bash(test:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npm run build:*)",
+      "Bash(gh auth status:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git remote add:*)"
     ]
   }
 }

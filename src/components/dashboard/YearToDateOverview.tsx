@@ -1,9 +1,29 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { YearToDateData } from "@/lib/dashboard";
+"use client";
 
-export default function YearToDateOverview({ data }: { data: YearToDateData }) {
-  const { ytdIncome, ytdExpenses, ytdSavings, ytdDebtPayments, ytdRemaining } =
-    data;
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { PeriodOverviewData } from "@/lib/dashboard";
+
+type Period = 3 | 6 | 12;
+
+const PERIOD_LABELS: Record<Period, string> = {
+  3: "3M",
+  6: "6M",
+  12: "1Y",
+};
+
+export default function PeriodOverview() {
+  const [period, setPeriod] = useState<Period>(3);
+  const [data, setData] = useState<PeriodOverviewData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/period-overview?months=${period}`)
+      .then((res) => res.json())
+      .then((json) => setData(json))
+      .finally(() => setLoading(false));
+  }, [period]);
 
   const formatCurrency = (n: number) =>
     n.toLocaleString("en-US", { minimumFractionDigits: 2 });
@@ -11,60 +31,92 @@ export default function YearToDateOverview({ data }: { data: YearToDateData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-bold text-budgetu-heading">
-          Year to Date
-        </CardTitle>
-        <p className="text-sm text-budgetu-muted">
-          Overview of your finances so far this year
-        </p>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-budgetu-muted font-medium">
-              Total Income (YTD)
-            </p>
-            <p className="text-lg font-semibold text-budgetu-heading mt-1">
-              ${formatCurrency(ytdIncome)}
+            <CardTitle className="text-lg font-bold text-budgetu-heading">
+              Spending Overview
+            </CardTitle>
+            <p className="text-sm text-budgetu-muted">
+              Your finances over the past {period} months
             </p>
           </div>
-          <div>
-            <p className="text-xs text-budgetu-muted font-medium">
-              Total Spent (YTD)
-            </p>
-            <p className="text-lg font-semibold text-budgetu-heading mt-1">
-              ${formatCurrency(ytdExpenses)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-budgetu-muted font-medium">
-              Total Saved (YTD)
-            </p>
-            <p className="text-lg font-semibold text-budgetu-accent mt-1">
-              ${formatCurrency(ytdSavings)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-budgetu-muted font-medium">
-              Debt Paid (YTD)
-            </p>
-            <p className="text-lg font-semibold text-budgetu-heading mt-1">
-              ${formatCurrency(ytdDebtPayments)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-budgetu-muted font-medium">
-              Net (YTD)
-            </p>
-            <p
-              className={`text-lg font-semibold mt-1 ${
-                ytdRemaining >= 0 ? "text-budgetu-positive" : "text-destructive"
-              }`}
-            >
-              {ytdRemaining < 0 ? "-" : ""}${formatCurrency(Math.abs(ytdRemaining))}
-            </p>
+          <div className="flex rounded-lg border border-border overflow-hidden">
+            {([3, 6, 12] as Period[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                  period === p
+                    ? "bg-budgetu-accent text-white"
+                    : "bg-card text-budgetu-muted hover:text-budgetu-heading"
+                }`}
+              >
+                {PERIOD_LABELS[p]}
+              </button>
+            ))}
           </div>
         </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-budgetu-accent border-t-transparent" />
+          </div>
+        ) : data ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-budgetu-muted font-medium">
+                  Total Spent
+                </p>
+                <p className="text-lg font-semibold text-budgetu-heading mt-1">
+                  ${formatCurrency(data.totalSpent)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-budgetu-muted font-medium">
+                  Total Saved
+                </p>
+                <p className="text-lg font-semibold text-budgetu-accent mt-1">
+                  ${formatCurrency(data.totalSaved)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-budgetu-muted font-medium">
+                  Debt Paid
+                </p>
+                <p className="text-lg font-semibold text-budgetu-heading mt-1">
+                  ${formatCurrency(data.totalDebtPayments)}
+                </p>
+              </div>
+            </div>
+
+            {data.topCategories.length > 0 && (
+              <div>
+                <p className="text-xs text-budgetu-muted font-medium mb-3">
+                  Top Categories
+                </p>
+                <div className="space-y-2">
+                  {data.topCategories.map((cat) => (
+                    <div key={cat.category} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-budgetu-heading font-medium">
+                          {cat.category}
+                        </span>
+                        <span className="text-xs text-budgetu-muted">
+                          {cat.percentage}%
+                        </span>
+                      </div>
+                      <span className="text-sm font-semibold text-budgetu-heading">
+                        ${formatCurrency(cat.total)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

@@ -312,6 +312,30 @@ export async function getYearToDateDebtPayments(
   return ok(total);
 }
 
+export async function getDebtPaymentsInRange(
+  supabase: SupabaseClient,
+  startDate: string,
+  endDate: string
+): Promise<Result<number>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("debt_payments")
+    .select("amount")
+    .eq("user_id", user.id)
+    .gte("date", startDate)
+    .lte("date", endDate);
+
+  if (error) return err(error.message);
+
+  const total = (data ?? []).reduce((sum, row) => sum + Number(row.amount), 0);
+  return ok(total);
+}
+
 export async function getDebtPaymentsForDebt(
   supabase: SupabaseClient,
   debtId: string

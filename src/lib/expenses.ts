@@ -86,6 +86,29 @@ export async function getYearToDateExpenses(
   return ok(total);
 }
 
+export async function getExpensesInRange(
+  supabase: SupabaseClient,
+  startDate: string,
+  endDate: string
+): Promise<Result<Expense[]>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("*")
+    .eq("user_id", user.id)
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .order("date", { ascending: false });
+
+  if (error) return err(error.message);
+  return ok((data ?? []) as Expense[]);
+}
+
 export async function deleteExpense(
   supabase: SupabaseClient,
   id: string

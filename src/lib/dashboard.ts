@@ -1,14 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Profile, Expense } from "@/lib/types";
 import { getProfile } from "@/lib/profiles";
-import { getMonthExpenses, getYearToDateExpenses } from "@/lib/expenses";
+import { getMonthExpenses, getExpensesInRange } from "@/lib/expenses";
 import {
   getMonthSavingsContributions,
-  getYearToDateSavings,
+  getSavingsInRange,
 } from "@/lib/savings-goals";
 import {
   getMonthDebtPayments,
-  getYearToDateDebtPayments,
+  getDebtPaymentsInRange,
 } from "@/lib/debts";
 import { ok, err, type Result } from "@/lib/result";
 
@@ -18,12 +18,11 @@ export type CategoryTotal = {
   percentage: number;
 };
 
-export type YearToDateData = {
-  ytdIncome: number;
-  ytdExpenses: number;
-  ytdSavings: number;
-  ytdDebtPayments: number;
-  ytdRemaining: number;
+export type PeriodOverviewData = {
+  totalSpent: number;
+  totalSaved: number;
+  totalDebtPayments: number;
+  topCategories: CategoryTotal[];
 };
 
 export type DashboardData = {
@@ -35,7 +34,6 @@ export type DashboardData = {
   budgetRemaining: number;
   categoryTotals: CategoryTotal[];
   expenses: Expense[];
-  yearToDate: YearToDateData;
 };
 
 export async function getDashboardData(
@@ -88,18 +86,6 @@ export async function getDashboardData(
     }))
     .sort((a, b) => b.total - a.total);
 
-  // Year-to-date data
-  const ytdExpensesResult = await getYearToDateExpenses(supabase);
-  const ytdSavingsResult = await getYearToDateSavings(supabase);
-  const ytdDebtResult = await getYearToDateDebtPayments(supabase);
-  const ytdExpenses = ytdExpensesResult.ok ? ytdExpensesResult.value : 0;
-  const ytdSavings = ytdSavingsResult.ok ? ytdSavingsResult.value : 0;
-  const ytdDebtPayments = ytdDebtResult.ok ? ytdDebtResult.value : 0;
-  const monthsElapsed = now.getMonth() + 1;
-  const ytdIncome = monthlyIncome * monthsElapsed;
-  const ytdRemaining =
-    ytdIncome - ytdExpenses - ytdSavings - ytdDebtPayments;
-
   return ok({
     profile,
     monthlyIncome,
@@ -109,12 +95,44 @@ export async function getDashboardData(
     budgetRemaining,
     categoryTotals,
     expenses,
-    yearToDate: {
-      ytdIncome,
-      ytdExpenses,
-      ytdSavings,
-      ytdDebtPayments,
-      ytdRemaining,
-    },
   });
+}
+
+export async function getPeriodOverviewData(
+  supabase: SupabaseClient,
+  months: 3 | 6 | 12
+): Promise<Result<PeriodOverviewData>> {
+  const now = new Date();
+  const endDate = now.toISOString().split("T")[0];
+  const start = new Date(now);
+  start.setMonth(start.getMonth() - months);
+  const startDate = start.toISOString().split("T")[0];
+
+  const [expensesResult, savingsResult, debtResult] = await Promise.all([
+    getExpensesInRange(supabase, startDate, endDate),
+    getSavingsInRange(supabase, startDate, endDate),
+    getDebtPaymentsInRange(supabase, startDate, endDate),
+  ]);
+
+  const expenses = expensesResult.ok ? expensesResult.value : [];
+  const totalSpent = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const totalSaved = savingsResult.ok ? savingsResult.value : 0;
+  const totalDebtPayments = debtResult.ok ? debtResult.value : 0;
+
+  const categoryMap = new Map<string, number>();
+  for (const expense of expenses) {
+    const current = categoryMap.get(expense.category) ?? 0;
+    categoryMap.set(expense.category, current + Number(expense.amount));
+  }
+
+  const topCategories: CategoryTotal[] = Array.from(categoryMap.entries())
+    .map(([category, total]) => ({
+      category,
+      total,
+      percentage: totalSpent > 0 ? Math.round((total / totalSpent) * 100) : 0,
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 3);
+
+  return ok({ totalSpent, totalSaved, totalDebtPayments, topCategories });
 }

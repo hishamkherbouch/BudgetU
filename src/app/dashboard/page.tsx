@@ -11,7 +11,7 @@ import CategoryBreakdown from "@/components/dashboard/CategoryBreakdown";
 import SavingsGoals from "@/components/dashboard/SavingsGoals";
 import Debts from "@/components/dashboard/Debts";
 import SpendingInsights from "@/components/dashboard/SpendingInsights";
-import YearToDateOverview from "@/components/dashboard/YearToDateOverview";
+import PeriodOverview from "@/components/dashboard/YearToDateOverview";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -28,7 +28,6 @@ export default async function DashboardPage() {
     totalDebtPaymentsThisMonth,
     budgetRemaining,
     categoryTotals,
-    yearToDate,
     profile,
   } = result.value;
 
@@ -64,7 +63,7 @@ export default async function DashboardPage() {
         budgetRemaining={budgetRemaining}
       />
 
-      <YearToDateOverview data={yearToDate} />
+      <PeriodOverview />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <CategoryBreakdown categoryTotals={categoryTotals} />
