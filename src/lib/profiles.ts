@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Profile } from "@/lib/types";
+import type { Profile, IncomeFrequency } from "@/lib/types";
 import { ok, err, type Result } from "@/lib/result";
 
 export async function getProfile(
@@ -34,6 +34,29 @@ export async function updateMonthlyIncome(
   const { error } = await supabase
     .from("profiles")
     .update({ monthly_income: amount, updated_at: new Date().toISOString() })
+    .eq("id", user.id);
+
+  if (error) return err(error.message);
+  return ok(null);
+}
+
+export async function updateIncomeSettings(
+  supabase: SupabaseClient,
+  settings: { monthly_income: number; income_frequency: IncomeFrequency }
+): Promise<Result<null>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      monthly_income: settings.monthly_income,
+      income_frequency: settings.income_frequency,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", user.id);
 
   if (error) return err(error.message);

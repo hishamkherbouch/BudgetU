@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Profile, Expense } from "@/lib/types";
+import type { Profile, Expense, IncomeFrequency } from "@/lib/types";
 import { getProfile } from "@/lib/profiles";
 import { getMonthExpenses, getExpensesInRange } from "@/lib/expenses";
 import {
@@ -10,6 +10,7 @@ import {
   getMonthDebtPayments,
   getDebtPaymentsInRange,
 } from "@/lib/debts";
+import { getIncomeInRange } from "@/lib/income";
 import { ok, err, type Result } from "@/lib/result";
 
 export type CategoryTotal = {
@@ -19,6 +20,7 @@ export type CategoryTotal = {
 };
 
 export type PeriodOverviewData = {
+  totalIncome: number;
   totalSpent: number;
   totalSaved: number;
   totalDebtPayments: number;
@@ -108,16 +110,18 @@ export async function getPeriodOverviewData(
   start.setMonth(start.getMonth() - months);
   const startDate = start.toISOString().split("T")[0];
 
-  const [expensesResult, savingsResult, debtResult] = await Promise.all([
+  const [expensesResult, savingsResult, debtResult, incomeResult] = await Promise.all([
     getExpensesInRange(supabase, startDate, endDate),
     getSavingsInRange(supabase, startDate, endDate),
     getDebtPaymentsInRange(supabase, startDate, endDate),
+    getIncomeInRange(supabase, startDate, endDate),
   ]);
 
   const expenses = expensesResult.ok ? expensesResult.value : [];
   const totalSpent = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
   const totalSaved = savingsResult.ok ? savingsResult.value : 0;
   const totalDebtPayments = debtResult.ok ? debtResult.value : 0;
+  const totalIncome = incomeResult.ok ? incomeResult.value : 0;
 
   const categoryMap = new Map<string, number>();
   for (const expense of expenses) {
@@ -134,5 +138,5 @@ export async function getPeriodOverviewData(
     .sort((a, b) => b.total - a.total)
     .slice(0, 3);
 
-  return ok({ totalSpent, totalSaved, totalDebtPayments, topCategories });
+  return ok({ totalIncome, totalSpent, totalSaved, totalDebtPayments, topCategories });
 }

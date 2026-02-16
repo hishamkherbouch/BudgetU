@@ -61,6 +61,7 @@ export default async function DashboardPage() {
         totalSavingsThisMonth={totalSavingsThisMonth}
         totalDebtPaymentsThisMonth={totalDebtPaymentsThisMonth}
         budgetRemaining={budgetRemaining}
+        incomeFrequency={profile.income_frequency}
       />
 
       <PeriodOverview />

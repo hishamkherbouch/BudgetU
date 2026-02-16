@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { PAY_PERIODS, type IncomeFrequency } from "@/lib/types";
 
 export default function SummaryCards({
   monthlyIncome,
@@ -6,19 +7,21 @@ export default function SummaryCards({
   totalSavingsThisMonth,
   totalDebtPaymentsThisMonth,
   budgetRemaining,
+  incomeFrequency,
 }: {
   monthlyIncome: number;
   totalSpent: number;
   totalSavingsThisMonth: number;
   totalDebtPaymentsThisMonth: number;
   budgetRemaining: number;
+  incomeFrequency: IncomeFrequency;
 }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       <Card>
         <CardContent className="pt-6">
           <p className="text-sm text-budgetu-muted font-medium">
-            Monthly Income
+            {PAY_PERIODS[incomeFrequency]} Income
           </p>
           <p className="text-2xl font-bold text-budgetu-heading mt-1">
             ${monthlyIncome.toLocaleString("en-US", { minimumFractionDigits: 2 })}

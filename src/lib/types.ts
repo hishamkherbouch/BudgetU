@@ -1,7 +1,10 @@
+export type IncomeFrequency = "weekly" | "biweekly" | "bimonthly" | "monthly";
+
 export type Profile = {
   id: string;
   display_name: string | null;
   monthly_income: number;
+  income_frequency: IncomeFrequency;
   general_savings_balance: number;
   created_at: string;
   updated_at: string;
@@ -74,3 +77,30 @@ export const DEBT_TYPES = [
   { value: "car_loan", label: "Car Loan" },
   { value: "other", label: "Other" },
 ] as const;
+
+export type IncomeEntry = {
+  id: string;
+  user_id: string;
+  amount: number;
+  source: string;
+  description: string | null;
+  date: string;
+  created_at: string;
+};
+
+export const INCOME_SOURCES = [
+  "Paycheck",
+  "Freelance",
+  "Gift",
+  "Refund",
+  "Investment",
+  "Scholarship",
+  "Other",
+] as const;
+
+export const PAY_PERIODS: Record<IncomeFrequency, string> = {
+  weekly: "Weekly",
+  biweekly: "Biweekly",
+  bimonthly: "Bimonthly",
+  monthly: "Monthly",
+};

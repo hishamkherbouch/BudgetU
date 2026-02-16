@@ -8,6 +8,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text,
   monthly_income numeric(10,2) default 0,
+  income_frequency text not null default 'monthly' check (income_frequency in ('weekly', 'biweekly', 'bimonthly', 'monthly')),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -191,3 +192,37 @@ create policy "Users can delete own debt payments"
 
 create index if not exists idx_debt_payments_user_date
   on public.debt_payments (user_id, date desc);
+
+-- ============================================================
+-- 7. Income Entries (tracks money received)
+-- ============================================================
+create table if not exists public.income_entries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  amount numeric(10,2) not null check (amount > 0),
+  source text not null,
+  description text,
+  date date not null default current_date,
+  created_at timestamptz default now()
+);
+
+alter table public.income_entries enable row level security;
+
+create policy "Users can read own income entries"
+  on public.income_entries for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own income entries"
+  on public.income_entries for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete own income entries"
+  on public.income_entries for delete
+  using (auth.uid() = user_id);
+
+create policy "Users can update own income entries"
+  on public.income_entries for update
+  using (auth.uid() = user_id);
+
+create index if not exists idx_income_entries_user_date
+  on public.income_entries (user_id, date desc);

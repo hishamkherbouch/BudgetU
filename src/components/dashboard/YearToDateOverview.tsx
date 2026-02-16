@@ -64,7 +64,15 @@ export default function PeriodOverview() {
           </div>
         ) : data ? (
           <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-xs text-budgetu-muted font-medium">
+                  Total Earned
+                </p>
+                <p className="text-lg font-semibold text-budgetu-positive mt-1">
+                  ${formatCurrency(data.totalIncome)}
+                </p>
+              </div>
               <div>
                 <p className="text-xs text-budgetu-muted font-medium">
                   Total Spent

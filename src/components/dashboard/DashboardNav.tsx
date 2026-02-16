@@ -27,6 +27,7 @@ export default function DashboardNav({
 
   const navLinks = [
     { href: "/dashboard", label: "Home" },
+    { href: "/dashboard/income", label: "Income" },
     { href: "/dashboard/expenses", label: "Expenses" },
     { href: "/dashboard/debt", label: "Debt & Loans" },
     { href: "/dashboard/education", label: "Education" },
