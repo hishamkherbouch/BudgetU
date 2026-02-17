@@ -15,8 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Trash2 } from "lucide-react";
+import EmptyState from "@/components/dashboard/EmptyState";
 import AddGoalDialog from "@/components/dashboard/AddGoalDialog";
 import AddSavingsDialog from "@/components/dashboard/AddSavingsDialog";
+import ConfirmDialog from "@/components/dashboard/ConfirmDialog";
 
 export default function SavingsGoals({
   goals: initialGoals,
@@ -28,19 +30,22 @@ export default function SavingsGoals({
   const router = useRouter();
   const [goals, setGoals] = useState(initialGoals);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  async function handleDelete(id: string) {
-    setDeletingId(id);
+  async function handleDelete() {
+    if (!confirmId) return;
+    setDeletingId(confirmId);
     const supabase = createClient();
-    const result = await deleteSavingsGoal(supabase, id);
+    const result = await deleteSavingsGoal(supabase, confirmId);
     if (result.ok) {
-      setGoals((prev) => prev.filter((g) => g.id !== id));
-      window.location.reload();
+      setGoals((prev) => prev.filter((g) => g.id !== confirmId));
     }
     setDeletingId(null);
+    setConfirmId(null);
   }
 
   return (
+    <>
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-bold text-budgetu-heading">
@@ -65,9 +70,7 @@ export default function SavingsGoals({
           </div>
         )}
         {goals.length === 0 && generalSavings <= 0 ? (
-          <p className="text-budgetu-muted text-sm">
-            No savings goals yet. Create one to start tracking!
-          </p>
+          <EmptyState message="No savings goals yet. Create one to start tracking!" />
         ) : goals.length === 0 ? null : (
           <div className="space-y-5">
             {goals.map((goal) => {
@@ -93,7 +96,7 @@ export default function SavingsGoals({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(goal.id)}
+                        onClick={() => setConfirmId(goal.id)}
                         disabled={deletingId === goal.id}
                         className="text-budgetu-muted hover:text-destructive"
                       >
@@ -114,6 +117,17 @@ export default function SavingsGoals({
           </div>
         )}
       </CardContent>
+
     </Card>
+
+    <ConfirmDialog
+      open={confirmId !== null}
+      onOpenChange={(open) => { if (!open) setConfirmId(null); }}
+      title="Delete savings goal"
+      description="Are you sure you want to delete this savings goal? This action cannot be undone."
+      onConfirm={handleDelete}
+      loading={deletingId !== null}
+    />
+    </>
   );
 }

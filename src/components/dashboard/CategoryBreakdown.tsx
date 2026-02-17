@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/card";
 import type { CategoryTotal } from "@/lib/dashboard";
 import { CATEGORY_COLORS } from "@/lib/constants";
+import EmptyState from "@/components/dashboard/EmptyState";
 
 export default function CategoryBreakdown({
   categoryTotals,
@@ -21,9 +22,7 @@ export default function CategoryBreakdown({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-budgetu-muted text-sm">
-            Add some expenses to see your category breakdown.
-          </p>
+          <EmptyState message="Add some expenses to see your category breakdown." />
         </CardContent>
       </Card>
     );

@@ -6,6 +6,8 @@ import { getDashboardData } from "@/lib/dashboard";
 import { getSavingsGoals } from "@/lib/savings-goals";
 import { getDebts } from "@/lib/debts";
 import { computeInsights } from "@/lib/insights";
+import { parseMonth, formatMonthLabel } from "@/lib/month";
+import MonthSelector from "@/components/dashboard/MonthSelector";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import CategoryBreakdown from "@/components/dashboard/CategoryBreakdown";
 import SavingsGoals from "@/components/dashboard/SavingsGoals";
@@ -13,9 +15,16 @@ import Debts from "@/components/dashboard/Debts";
 import SpendingInsights from "@/components/dashboard/SpendingInsights";
 import PeriodOverview from "@/components/dashboard/YearToDateOverview";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const { year, month } = parseMonth(params);
+
   const supabase = await createClient();
-  const result = await getDashboardData(supabase);
+  const result = await getDashboardData(supabase, year, month);
 
   if (!result.ok || result.value.profile.monthly_income <= 0) {
     redirect("/onboarding");
@@ -44,15 +53,16 @@ export default async function DashboardPage() {
     goals
   );
 
-  const now = new Date();
-
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-budgetu-heading">Dashboard</h1>
-        <p className="text-budgetu-muted text-sm mt-1">
-          {now.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-budgetu-heading">Dashboard</h1>
+          <p className="text-budgetu-muted text-sm mt-1">
+            {formatMonthLabel(year, month)}
+          </p>
+        </div>
+        <MonthSelector year={year} month={month} />
       </div>
 
       <SummaryCards

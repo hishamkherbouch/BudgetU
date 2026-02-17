@@ -39,34 +39,27 @@ export type DashboardData = {
 };
 
 export async function getDashboardData(
-  supabase: SupabaseClient
+  supabase: SupabaseClient,
+  year?: number,
+  month?: number
 ): Promise<Result<DashboardData>> {
   const profileResult = await getProfile(supabase);
   if (!profileResult.ok) return err(profileResult.error);
 
   const profile = profileResult.value;
   const now = new Date();
-  const expensesResult = await getMonthExpenses(
-    supabase,
-    now.getFullYear(),
-    now.getMonth() + 1
-  );
+  const y = year ?? now.getFullYear();
+  const m = month ?? now.getMonth() + 1;
+
+  const expensesResult = await getMonthExpenses(supabase, y, m);
 
   const expenses = expensesResult.ok ? expensesResult.value : [];
   const totalSpent = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
-  const savingsResult = await getMonthSavingsContributions(
-    supabase,
-    now.getFullYear(),
-    now.getMonth() + 1
-  );
+  const savingsResult = await getMonthSavingsContributions(supabase, y, m);
   const totalSavingsThisMonth = savingsResult.ok ? savingsResult.value : 0;
 
-  const debtResult = await getMonthDebtPayments(
-    supabase,
-    now.getFullYear(),
-    now.getMonth() + 1
-  );
+  const debtResult = await getMonthDebtPayments(supabase, y, m);
   const totalDebtPaymentsThisMonth = debtResult.ok ? debtResult.value : 0;
 
   const monthlyIncome = Number(profile.monthly_income);

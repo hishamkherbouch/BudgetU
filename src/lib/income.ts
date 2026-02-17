@@ -85,6 +85,27 @@ export async function getIncomeInRange(
   return ok(total);
 }
 
+export async function updateIncomeEntry(
+  supabase: SupabaseClient,
+  id: string,
+  updates: { amount?: number; source?: string; description?: string; date?: string }
+): Promise<Result<null>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { error } = await supabase
+    .from("income_entries")
+    .update(updates)
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return err(error.message);
+  return ok(null);
+}
+
 export async function deleteIncomeEntry(
   supabase: SupabaseClient,
   id: string

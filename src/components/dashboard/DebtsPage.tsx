@@ -21,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Trash2, Pencil } from "lucide-react";
 import AddDebtDialog from "@/components/dashboard/AddDebtDialog";
 import AddDebtPaymentDialog from "@/components/dashboard/AddDebtPaymentDialog";
+import ConfirmDialog from "@/components/dashboard/ConfirmDialog";
+import EmptyState from "@/components/dashboard/EmptyState";
 
 function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
   const router = useRouter();
@@ -33,6 +35,7 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmPayment, setConfirmPayment] = useState<{ id: string; debtId: string } | null>(null);
 
   const selectedDebt = debts.find((d) => d.id === selectedDebtId);
 
@@ -56,15 +59,17 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
     loadPayments();
   }, [selectedDebtId]);
 
-  async function handleDeletePayment(paymentId: string, debtId: string) {
-    setDeletingId(paymentId);
+  async function handleDeletePayment() {
+    if (!confirmPayment) return;
+    setDeletingId(confirmPayment.id);
     const supabase = createClient();
-    const result = await deleteDebtPayment(supabase, paymentId, debtId);
+    const result = await deleteDebtPayment(supabase, confirmPayment.id, confirmPayment.debtId);
     if (result.ok) {
-      setPayments((prev) => prev.filter((p) => p.id !== paymentId));
+      setPayments((prev) => prev.filter((p) => p.id !== confirmPayment.id));
       window.location.reload();
     }
     setDeletingId(null);
+    setConfirmPayment(null);
   }
 
   async function handleUpdatePayment(
@@ -100,7 +105,7 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
 
       {selectedDebt ? (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <Button
                 variant="ghost"
@@ -134,9 +139,7 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
             {loadingPayments ? (
               <p className="text-budgetu-muted text-sm">Loading...</p>
             ) : payments.length === 0 ? (
-              <p className="text-budgetu-muted text-sm">
-                No payments yet. Add one above!
-              </p>
+              <EmptyState message="No payments yet. Record your first payment above!" />
             ) : (
               <ul className="space-y-2">
                 {payments.map((payment) => (
@@ -206,7 +209,7 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
                             variant="ghost"
                             size="sm"
                             onClick={() =>
-                              handleDeletePayment(payment.id, payment.debt_id)
+                              setConfirmPayment({ id: payment.id, debtId: payment.debt_id })
                             }
                             disabled={deletingId === payment.id}
                             className="text-budgetu-muted hover:text-destructive"
@@ -232,9 +235,7 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
         </CardHeader>
         <CardContent>
           {debts.length === 0 ? (
-            <p className="text-budgetu-muted text-sm">
-              No debts or loans yet. Add one to get started!
-            </p>
+            <EmptyState message="No debts or loans yet. Add one to get started!" />
           ) : (
             <div className="space-y-3">
               {debts.map((debt) => (
@@ -275,6 +276,15 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={confirmPayment !== null}
+        onOpenChange={(open) => { if (!open) setConfirmPayment(null); }}
+        title="Delete payment"
+        description="Are you sure you want to delete this payment? This action cannot be undone."
+        onConfirm={handleDeletePayment}
+        loading={deletingId !== null}
+      />
     </div>
   );
 }

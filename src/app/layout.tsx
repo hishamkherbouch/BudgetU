@@ -30,7 +30,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${dmSans.variable} antialiased`}>
+      <body className={`${dmSans.variable} antialiased overflow-x-hidden`}>
         <ThemeProvider>
           {children}
           <AuthModal />

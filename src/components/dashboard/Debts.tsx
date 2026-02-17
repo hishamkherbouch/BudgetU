@@ -16,24 +16,30 @@ import { Button } from "@/components/ui/button";
 import { Trash2, ChevronRight } from "lucide-react";
 import AddDebtDialog from "@/components/dashboard/AddDebtDialog";
 import AddDebtPaymentDialog from "@/components/dashboard/AddDebtPaymentDialog";
+import ConfirmDialog from "@/components/dashboard/ConfirmDialog";
+import EmptyState from "@/components/dashboard/EmptyState";
 
 export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
   const router = useRouter();
   const [debts, setDebts] = useState(initialDebts);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  async function handleDelete(id: string) {
-    setDeletingId(id);
+  async function handleDelete() {
+    if (!confirmId) return;
+    setDeletingId(confirmId);
     const supabase = createClient();
-    const result = await deleteDebt(supabase, id);
+    const result = await deleteDebt(supabase, confirmId);
     if (result.ok) {
-      setDebts((prev) => prev.filter((d) => d.id !== id));
+      setDebts((prev) => prev.filter((d) => d.id !== confirmId));
       window.location.reload();
     }
     setDeletingId(null);
+    setConfirmId(null);
   }
 
   return (
+    <>
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-bold text-budgetu-heading">
@@ -43,9 +49,7 @@ export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
       </CardHeader>
       <CardContent>
         {debts.length === 0 ? (
-          <p className="text-budgetu-muted text-sm">
-            No debts or loans yet. Add one to track payments!
-          </p>
+          <EmptyState message="No debts or loans yet. Add one to track payments!" />
         ) : (
           <div className="space-y-4">
             {debts.slice(0, 3).map((debt) => {
@@ -75,7 +79,7 @@ export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(debt.id)}
+                      onClick={() => setConfirmId(debt.id)}
                       disabled={deletingId === debt.id}
                       className="text-budgetu-muted hover:text-destructive"
                     >
@@ -104,5 +108,15 @@ export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
         )}
       </CardContent>
     </Card>
+
+    <ConfirmDialog
+      open={confirmId !== null}
+      onOpenChange={(open) => { if (!open) setConfirmId(null); }}
+      title="Delete debt"
+      description="Are you sure you want to delete this debt? This action cannot be undone."
+      onConfirm={handleDelete}
+      loading={deletingId !== null}
+    />
+    </>
   );
 }

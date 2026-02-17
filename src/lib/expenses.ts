@@ -109,6 +109,27 @@ export async function getExpensesInRange(
   return ok((data ?? []) as Expense[]);
 }
 
+export async function updateExpense(
+  supabase: SupabaseClient,
+  id: string,
+  updates: { amount?: number; category?: string; description?: string; date?: string }
+): Promise<Result<null>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { error } = await supabase
+    .from("expenses")
+    .update(updates)
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return err(error.message);
+  return ok(null);
+}
+
 export async function deleteExpense(
   supabase: SupabaseClient,
   id: string

@@ -31,7 +31,7 @@ export default function PeriodOverview() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <CardTitle className="text-lg font-bold text-budgetu-heading">
               Spending Overview

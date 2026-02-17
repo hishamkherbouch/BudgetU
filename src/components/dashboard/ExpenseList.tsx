@@ -1,12 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { deleteExpense } from "@/lib/expenses";
+import { deleteExpense, updateExpense } from "@/lib/expenses";
 import type { Expense } from "@/lib/types";
+import { EXPENSE_CATEGORIES } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Card,
   CardHeader,
@@ -14,27 +22,66 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import EmptyState from "@/components/dashboard/EmptyState";
-import { Trash2 } from "lucide-react";
+import ConfirmDialog from "@/components/dashboard/ConfirmDialog";
+import { Trash2, Pencil } from "lucide-react";
 
 export default function ExpenseList({
   expenses: initialExpenses,
 }: {
   expenses: Expense[];
 }) {
-  const router = useRouter();
   const [expenses, setExpenses] = useState(initialExpenses);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editAmount, setEditAmount] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editDate, setEditDate] = useState("");
 
-  async function handleDelete(id: string) {
-    setDeletingId(id);
+  function startEdit(expense: Expense) {
+    setEditingId(expense.id);
+    setEditAmount(String(expense.amount));
+    setEditCategory(expense.category);
+    setEditDescription(expense.description || "");
+    setEditDate(expense.date);
+  }
+
+  async function handleSaveEdit(id: string) {
+    const amt = parseFloat(editAmount);
+    if (isNaN(amt) || amt <= 0) return;
+
     const supabase = createClient();
-    const result = await deleteExpense(supabase, id);
+    const result = await updateExpense(supabase, id, {
+      amount: amt,
+      category: editCategory,
+      description: editDescription || undefined,
+      date: editDate,
+    });
 
     if (result.ok) {
-      setExpenses((prev) => prev.filter((e) => e.id !== id));
-      window.location.reload();
+      setExpenses((prev) =>
+        prev.map((e) =>
+          e.id === id
+            ? { ...e, amount: amt, category: editCategory, description: editDescription || null, date: editDate }
+            : e
+        )
+      );
+      setEditingId(null);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirmId) return;
+    setDeletingId(confirmId);
+    const supabase = createClient();
+    const result = await deleteExpense(supabase, confirmId);
+
+    if (result.ok) {
+      setExpenses((prev) => prev.filter((e) => e.id !== confirmId));
     }
     setDeletingId(null);
+    setConfirmId(null);
   }
 
   if (expenses.length === 0) {
@@ -48,50 +95,125 @@ export default function ExpenseList({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-bold text-budgetu-heading">
-          Recent Expenses
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {expenses.map((expense) => (
-            <div
-              key={expense.id}
-              className="flex items-center justify-between gap-4 py-3 border-b border-border last:border-0"
-              data-testid="expense-row"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <Badge variant="secondary" className="shrink-0">
-                  {expense.category}
-                </Badge>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-budgetu-heading truncate">
-                    {expense.description || expense.category}
-                  </p>
-                  <p className="text-xs text-budgetu-muted">{expense.date}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-base font-semibold text-budgetu-heading">
-                  ${Number(expense.amount).toFixed(2)}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(expense.id)}
-                  disabled={deletingId === expense.id}
-                  className="text-budgetu-muted hover:text-destructive"
-                  data-testid="expense-delete"
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-bold text-budgetu-heading">
+            Recent Expenses
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {expenses.map((expense) =>
+              editingId === expense.id ? (
+                <div
+                  key={expense.id}
+                  className="py-3 border-b border-border last:border-0 space-y-3"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={editAmount}
+                      onChange={(e) => setEditAmount(e.target.value)}
+                      placeholder="Amount"
+                    />
+                    <Select value={editCategory} onValueChange={setEditCategory}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EXPENSE_CATEGORIES.map((cat) => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Input
+                      type="text"
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      placeholder="Description"
+                    />
+                    <Input
+                      type="date"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="bg-budgetu-accent hover:bg-budgetu-accent-hover text-white"
+                      onClick={() => handleSaveEdit(expense.id)}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setEditingId(null)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  key={expense.id}
+                  className="flex items-center justify-between gap-4 py-3 border-b border-border last:border-0"
+                  data-testid="expense-row"
+                >
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <Badge variant="secondary" className="shrink-0">
+                      {expense.category}
+                    </Badge>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-budgetu-heading truncate">
+                        {expense.description || expense.category}
+                      </p>
+                      <p className="text-xs text-budgetu-muted">{expense.date}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base font-semibold text-budgetu-heading">
+                      ${Number(expense.amount).toFixed(2)}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => startEdit(expense)}
+                      className="text-budgetu-muted hover:text-budgetu-heading"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setConfirmId(expense.id)}
+                      className="text-budgetu-muted hover:text-destructive"
+                      data-testid="expense-delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        onOpenChange={(open) => { if (!open) setConfirmId(null); }}
+        title="Delete expense"
+        description="Are you sure you want to delete this expense? This action cannot be undone."
+        onConfirm={handleDelete}
+        loading={deletingId !== null}
+      />
+    </>
   );
 }
