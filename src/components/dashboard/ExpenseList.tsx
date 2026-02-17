@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { deleteExpense, updateExpense } from "@/lib/expenses";
-import type { Expense } from "@/lib/types";
-import { EXPENSE_CATEGORIES } from "@/lib/types";
+import { getCategories } from "@/lib/categories";
+import type { Expense, Category } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -38,11 +38,24 @@ export default function ExpenseList({
   const [editCategory, setEditCategory] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editDate, setEditDate] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    async function loadCategories() {
+      const supabase = createClient();
+      const result = await getCategories(supabase);
+      if (result.ok) setCategories(result.value);
+    }
+    loadCategories();
+  }, []);
 
   function startEdit(expense: Expense) {
     setEditingId(expense.id);
     setEditAmount(String(expense.amount));
-    setEditCategory(expense.category);
+    // Find the category by category_id first, fall back to name match
+    const cat = categories.find((c) => c.id === expense.category_id)
+      ?? categories.find((c) => c.name === expense.category);
+    setEditCategory(cat?.id ?? "");
     setEditDescription(expense.description || "");
     setEditDate(expense.date);
   }
@@ -52,9 +65,12 @@ export default function ExpenseList({
     if (isNaN(amt) || amt <= 0) return;
 
     const supabase = createClient();
+    const selectedCat = categories.find((c) => c.id === editCategory);
+
     const result = await updateExpense(supabase, id, {
       amount: amt,
-      category: editCategory,
+      category: selectedCat?.name ?? editCategory,
+      category_id: selectedCat?.id ?? null,
       description: editDescription || undefined,
       date: editDate,
     });
@@ -63,7 +79,7 @@ export default function ExpenseList({
       setExpenses((prev) =>
         prev.map((e) =>
           e.id === id
-            ? { ...e, amount: amt, category: editCategory, description: editDescription || null, date: editDate }
+            ? { ...e, amount: amt, category: selectedCat?.name ?? editCategory, category_id: selectedCat?.id ?? null, description: editDescription || null, date: editDate }
             : e
         )
       );
@@ -124,8 +140,11 @@ export default function ExpenseList({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {EXPENSE_CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                            {!cat.is_default && " (custom)"}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

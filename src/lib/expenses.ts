@@ -7,6 +7,7 @@ export async function addExpense(
   expense: {
     amount: number;
     category: string;
+    category_id?: string | null;
     description: string;
     date: string;
   }
@@ -23,6 +24,7 @@ export async function addExpense(
       user_id: user.id,
       amount: expense.amount,
       category: expense.category,
+      category_id: expense.category_id ?? null,
       description: expense.description || null,
       date: expense.date,
     })
@@ -112,7 +114,7 @@ export async function getExpensesInRange(
 export async function updateExpense(
   supabase: SupabaseClient,
   id: string,
-  updates: { amount?: number; category?: string; description?: string; date?: string }
+  updates: { amount?: number; category?: string; category_id?: string | null; description?: string; date?: string }
 ): Promise<Result<null>> {
   const {
     data: { user },

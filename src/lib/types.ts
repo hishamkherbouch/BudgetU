@@ -15,9 +15,11 @@ export type Expense = {
   user_id: string;
   amount: number;
   category: string;
+  category_id: string | null;
   description: string | null;
   date: string;
   created_at: string;
+  updated_at: string;
 };
 
 export type SavingsGoal = {
@@ -69,6 +71,7 @@ export type DebtPayment = {
   is_extra: boolean;
   notes: string | null;
   created_at: string;
+  updated_at: string;
 };
 
 export const DEBT_TYPES = [
@@ -86,6 +89,27 @@ export type IncomeEntry = {
   description: string | null;
   date: string;
   created_at: string;
+  updated_at: string;
+};
+
+export type Category = {
+  id: string;
+  user_id: string | null;
+  name: string;
+  icon: string | null;
+  color: string | null;
+  is_default: boolean;
+  created_at: string;
+};
+
+export type SavingsContribution = {
+  id: string;
+  user_id: string;
+  goal_id: string;
+  amount: number;
+  date: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export const INCOME_SOURCES = [
