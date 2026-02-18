@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -18,7 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, Pencil } from "lucide-react";
+import { Trash2, Pencil, BarChart2 } from "lucide-react";
 import AddDebtDialog from "@/components/dashboard/AddDebtDialog";
 import AddDebtPaymentDialog from "@/components/dashboard/AddDebtPaymentDialog";
 import ConfirmDialog from "@/components/dashboard/ConfirmDialog";
@@ -261,9 +262,15 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
                     </p>
                   </div>
                   <div
-                    className="shrink-0"
+                    className="shrink-0 flex items-center gap-2"
                     onClick={(e) => e.stopPropagation()}
                   >
+                    <Link href={`/dashboard/debt/${debt.id}`}>
+                      <Button variant="outline" size="sm" className="gap-1 text-xs">
+                        <BarChart2 className="w-3.5 h-3.5" />
+                        Simulate
+                      </Button>
+                    </Link>
                     <AddDebtPaymentDialog
                       debtId={debt.id}
                       debtName={debt.name}

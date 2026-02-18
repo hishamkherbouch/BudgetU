@@ -2,6 +2,28 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Debt, DebtPayment } from "@/lib/types";
 import { ok, err, type Result } from "@/lib/result";
 
+export async function getDebtById(
+  supabase: SupabaseClient,
+  id: string
+): Promise<Result<Debt>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("debts")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (error) return err(error.message);
+  if (!data) return err("Debt not found");
+  return ok(data as Debt);
+}
+
 export async function createDebt(
   supabase: SupabaseClient,
   debt: {
