@@ -60,6 +60,7 @@ export default function DashboardNav({
     { href: "/dashboard", label: "Home" },
     { href: "/dashboard/income", label: "Income" },
     { href: "/dashboard/expenses", label: "Expenses" },
+    { href: "/dashboard/savings", label: "Savings" },
     { href: "/dashboard/debt", label: "Debt & Loans" },
     { href: "/dashboard/education", label: "Education" },
   ];

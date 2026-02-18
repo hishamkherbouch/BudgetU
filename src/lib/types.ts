@@ -29,6 +29,7 @@ export type SavingsGoal = {
   target_amount: number;
   current_amount: number;
   is_emergency_fund: boolean;
+  target_date: string | null;
   created_at: string;
   updated_at: string;
 };

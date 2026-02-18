@@ -1,10 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { SavingsGoal } from "@/lib/types";
+import type { SavingsGoal, SavingsContribution } from "@/lib/types";
 import { ok, err, type Result } from "@/lib/result";
 
 export async function createSavingsGoal(
   supabase: SupabaseClient,
-  goal: { name: string; target_amount: number; is_emergency_fund: boolean }
+  goal: { name: string; target_amount: number; is_emergency_fund: boolean; target_date?: string | null }
 ): Promise<Result<SavingsGoal>> {
   const {
     data: { user },
@@ -19,6 +19,7 @@ export async function createSavingsGoal(
       name: goal.name,
       target_amount: goal.target_amount,
       is_emergency_fund: goal.is_emergency_fund,
+      ...(goal.target_date ? { target_date: goal.target_date } : {}),
     })
     .select()
     .single();
@@ -191,4 +192,44 @@ export async function deleteSavingsGoal(
 
   if (error) return err(error.message);
   return ok(null);
+}
+
+export async function getGoalContributions(
+  supabase: SupabaseClient,
+  goalId: string
+): Promise<Result<SavingsContribution[]>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("savings_contributions")
+    .select("*")
+    .eq("goal_id", goalId)
+    .eq("user_id", user.id)
+    .order("date", { ascending: false });
+
+  if (error) return err(error.message);
+  return ok((data ?? []) as SavingsContribution[]);
+}
+
+export async function getAllContributions(
+  supabase: SupabaseClient
+): Promise<Result<SavingsContribution[]>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("savings_contributions")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("date", { ascending: false });
+
+  if (error) return err(error.message);
+  return ok((data ?? []) as SavingsContribution[]);
 }

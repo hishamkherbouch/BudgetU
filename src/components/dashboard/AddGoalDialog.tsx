@@ -19,6 +19,7 @@ export default function AddGoalDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
+  const [targetDate, setTargetDate] = useState("");
   const [isEmergencyFund, setIsEmergencyFund] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,6 +40,7 @@ export default function AddGoalDialog() {
       name,
       target_amount: targetAmount,
       is_emergency_fund: isEmergencyFund,
+      target_date: targetDate || null,
     });
 
     if (!result.ok) {
@@ -49,6 +51,7 @@ export default function AddGoalDialog() {
 
     setName("");
     setTarget("");
+    setTargetDate("");
     setIsEmergencyFund(false);
     setLoading(false);
     setOpen(false);
@@ -97,6 +100,18 @@ export default function AddGoalDialog() {
               value={target}
               onChange={(e) => setTarget(e.target.value)}
               required
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="goal-target-date" className="text-sm font-medium text-budgetu-heading">
+              Target date <span className="text-budgetu-muted font-normal">(optional)</span>
+            </label>
+            <Input
+              id="goal-target-date"
+              type="date"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
             />
           </div>
           <label className="flex items-center gap-2 text-sm text-budgetu-body cursor-pointer">
