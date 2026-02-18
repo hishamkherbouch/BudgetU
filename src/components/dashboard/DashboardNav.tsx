@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { exportAllData } from "@/lib/export";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
-import HeartButton from "@/components/HeartButton";
+import { Menu, X, ChevronDown, Sun, Moon, Upload, Download, LogOut } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function DashboardNav({
   displayName,
@@ -16,13 +16,44 @@ export default function DashboardNav({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportMsg, setExportMsg] = useState("");
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [userMenuOpen]);
 
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    setExportMsg("");
+    const supabase = createClient();
+    const result = await exportAllData(supabase);
+    setExporting(false);
+    if (result.ok) {
+      setExportMsg("Exported successfully!");
+      setTimeout(() => setExportMsg(""), 3000);
+    } else {
+      setExportMsg("Export failed.");
+    }
   }
 
   const navLinks = [
@@ -65,26 +96,107 @@ export default function DashboardNav({
         })}
       </nav>
 
-      {/* Desktop user & logout */}
+      {/* Desktop: user menu */}
       <div className="hidden md:flex items-center gap-3 shrink-0">
-        {displayName && (
-          <span className="text-sm text-budgetu-body font-medium">
-            {displayName}
-          </span>
+        {displayName ? (
+          <div className="relative" ref={userMenuRef}>
+            <button
+              type="button"
+              onClick={() => setUserMenuOpen((v) => !v)}
+              className="flex items-center gap-1.5 text-sm text-budgetu-body font-medium hover:text-budgetu-heading transition-colors px-2 py-1 rounded-lg hover:bg-budgetu-accent/10"
+            >
+              {displayName}
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {userMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-60 bg-budgetu-surface border border-border rounded-xl shadow-lg z-50 py-2">
+                {/* Appearance */}
+                <div className="px-3 py-2 border-b border-border mb-1">
+                  <p className="text-xs text-budgetu-muted mb-2 font-medium uppercase tracking-wide">
+                    Appearance
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { if (theme !== "light") toggleTheme(); }}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                        theme === "light"
+                          ? "border-budgetu-accent bg-budgetu-accent/10 text-budgetu-accent"
+                          : "border-border text-budgetu-muted hover:text-budgetu-body"
+                      }`}
+                    >
+                      <Sun className="w-4 h-4" />
+                      Light
+                    </button>
+                    <button
+                      onClick={() => { if (theme !== "dark") toggleTheme(); }}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                        theme === "dark"
+                          ? "border-budgetu-accent bg-budgetu-accent/10 text-budgetu-accent"
+                          : "border-border text-budgetu-muted hover:text-budgetu-body"
+                      }`}
+                    >
+                      <Moon className="w-4 h-4" />
+                      Dark
+                    </button>
+                  </div>
+                </div>
+
+                {/* Import */}
+                <Link
+                  href="/dashboard/import"
+                  className="flex items-center gap-2.5 px-3 py-2 text-sm text-budgetu-body hover:bg-budgetu-accent/10 hover:text-budgetu-heading transition-colors"
+                  onClick={() => setUserMenuOpen(false)}
+                >
+                  <Upload className="w-4 h-4" />
+                  Import Expenses
+                </Link>
+
+                {/* Export */}
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  disabled={exporting}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-budgetu-body hover:bg-budgetu-accent/10 hover:text-budgetu-heading transition-colors disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  {exporting ? "Exporting..." : "Export All Data"}
+                </button>
+
+                {exportMsg && (
+                  <p className="px-3 pb-1 text-xs text-budgetu-positive">{exportMsg}</p>
+                )}
+
+                {/* Log out */}
+                <div className="border-t border-border mt-1 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); handleLogout(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-budgetu-body hover:bg-budgetu-accent/10 hover:text-budgetu-heading transition-colors"
+                    data-testid="logout-button"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Log out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Button
+            variant="ghost"
+            className="text-budgetu-body font-semibold"
+            onClick={handleLogout}
+            data-testid="logout-button"
+          >
+            Log out
+          </Button>
         )}
-        <HeartButton />
-        <ThemeToggle />
-        <Button
-          variant="ghost"
-          className="text-budgetu-body font-semibold"
-          onClick={handleLogout}
-          data-testid="logout-button"
-        >
-          Log out
-        </Button>
       </div>
 
-      {/* Mobile hamburger button */}
+      {/* Mobile hamburger */}
       <button
         type="button"
         className="md:hidden p-2 rounded-lg text-budgetu-heading hover:bg-budgetu-accent/10 transition-colors shrink-0"
@@ -118,11 +230,13 @@ export default function DashboardNav({
                 <X className="w-5 h-5" />
               </button>
             </div>
+
             {displayName && (
               <p className="text-sm text-budgetu-body font-medium mb-4 px-4">
                 {displayName}
               </p>
             )}
+
             <nav className="flex flex-col gap-1">
               {navLinks.map(({ href, label }) => {
                 const isActive =
@@ -145,23 +259,75 @@ export default function DashboardNav({
                 );
               })}
             </nav>
+
             <div className="mt-6 pt-6 border-t border-border space-y-2">
-              <div className="flex items-center justify-between px-4">
-                <span className="text-sm text-budgetu-body">Theme</span>
-                <div className="flex items-center gap-2">
-                  <HeartButton />
-                  <ThemeToggle />
+              {/* Appearance */}
+              <div className="px-4 pb-2">
+                <p className="text-xs text-budgetu-muted mb-2 font-medium uppercase tracking-wide">
+                  Appearance
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { if (theme !== "light") toggleTheme(); }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                      theme === "light"
+                        ? "border-budgetu-accent bg-budgetu-accent/10 text-budgetu-accent"
+                        : "border-border text-budgetu-muted hover:text-budgetu-body"
+                    }`}
+                  >
+                    <Sun className="w-4 h-4" />
+                    Light
+                  </button>
+                  <button
+                    onClick={() => { if (theme !== "dark") toggleTheme(); }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                      theme === "dark"
+                        ? "border-budgetu-accent bg-budgetu-accent/10 text-budgetu-accent"
+                        : "border-border text-budgetu-muted hover:text-budgetu-body"
+                    }`}
+                  >
+                    <Moon className="w-4 h-4" />
+                    Dark
+                  </button>
                 </div>
               </div>
+
+              {/* Import */}
+              <Link
+                href="/dashboard/import"
+                className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-budgetu-body hover:bg-budgetu-accent/10 hover:text-budgetu-heading rounded-lg transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Upload className="w-4 h-4" />
+                Import Expenses
+              </Link>
+
+              {/* Export */}
+              <button
+                type="button"
+                onClick={handleExport}
+                disabled={exporting}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-budgetu-body hover:bg-budgetu-accent/10 hover:text-budgetu-heading rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" />
+                {exporting ? "Exporting..." : "Export All Data"}
+              </button>
+
+              {exportMsg && (
+                <p className="px-4 text-xs text-budgetu-positive">{exportMsg}</p>
+              )}
+
+              {/* Log out */}
               <Button
                 variant="ghost"
-                className="w-full justify-center text-budgetu-body font-semibold"
+                className="w-full justify-start gap-2.5 px-4 text-budgetu-body font-semibold"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   handleLogout();
                 }}
                 data-testid="logout-button-mobile"
               >
+                <LogOut className="w-4 h-4" />
                 Log out
               </Button>
             </div>

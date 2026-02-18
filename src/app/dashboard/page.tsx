@@ -30,15 +30,7 @@ export default async function DashboardPage({
     redirect("/onboarding");
   }
 
-  const {
-    monthlyIncome,
-    totalSpent,
-    totalSavingsThisMonth,
-    totalDebtPaymentsThisMonth,
-    budgetRemaining,
-    categoryTotals,
-    profile,
-  } = result.value;
+  const { budget, categoryTotals, profile } = result.value;
 
   const goalsResult = await getSavingsGoals(supabase);
   const goals = goalsResult.ok ? goalsResult.value : [];
@@ -47,8 +39,8 @@ export default async function DashboardPage({
   const debts = debtsResult.ok ? debtsResult.value : [];
 
   const insights = computeInsights(
-    monthlyIncome,
-    totalSpent,
+    budget.incomeTotal,
+    budget.expenseTotal,
     categoryTotals,
     goals
   );
@@ -65,14 +57,7 @@ export default async function DashboardPage({
         <MonthSelector year={year} month={month} />
       </div>
 
-      <SummaryCards
-        monthlyIncome={monthlyIncome}
-        totalSpent={totalSpent}
-        totalSavingsThisMonth={totalSavingsThisMonth}
-        totalDebtPaymentsThisMonth={totalDebtPaymentsThisMonth}
-        budgetRemaining={budgetRemaining}
-        incomeFrequency={profile.income_frequency}
-      />
+      <SummaryCards budget={budget} />
 
       <PeriodOverview />
 

@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
-import HeartButton from "@/components/HeartButton";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -47,7 +46,6 @@ export default function Header() {
 
       {/* Desktop auth buttons */}
       <div className="hidden md:flex items-center gap-3 shrink-0">
-        <HeartButton />
         <ThemeToggle />
         <Button
           variant="ghost"
@@ -115,10 +113,7 @@ export default function Header() {
             <div className="mt-6 pt-6 border-t border-border flex flex-col gap-2">
               <div className="flex items-center justify-between px-4 mb-2">
                 <span className="text-sm text-budgetu-body">Theme</span>
-                <div className="flex items-center gap-2">
-                  <HeartButton />
-                  <ThemeToggle />
-                </div>
+                <ThemeToggle />
               </div>
               <Button
                 variant="ghost"

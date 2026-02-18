@@ -61,6 +61,35 @@ export async function getMonthIncomeEntries(
   return ok((data ?? []) as IncomeEntry[]);
 }
 
+export async function getMonthIncomeTotal(
+  supabase: SupabaseClient,
+  year: number,
+  month: number
+): Promise<Result<number>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const endMonth = month === 12 ? 1 : month + 1;
+  const endYear = month === 12 ? year + 1 : year;
+  const endDate = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
+
+  const { data, error } = await supabase
+    .from("income_entries")
+    .select("amount")
+    .eq("user_id", user.id)
+    .gte("date", startDate)
+    .lt("date", endDate);
+
+  if (error) return err(error.message);
+
+  const total = (data ?? []).reduce((sum, row) => sum + Number(row.amount), 0);
+  return ok(total);
+}
+
 export async function getIncomeInRange(
   supabase: SupabaseClient,
   startDate: string,
