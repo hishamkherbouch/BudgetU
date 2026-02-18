@@ -5,14 +5,16 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardData } from "@/lib/dashboard";
 import { getRecurringTransactions, generateOccurrences } from "@/lib/recurring";
+import { detectSubscriptions } from "@/lib/subscriptions";
 import { parseMonth, formatMonthLabel } from "@/lib/month";
 import { RECURRING_FREQUENCIES } from "@/lib/types";
+import type { RecurringTransaction } from "@/lib/types";
 import MonthSelector from "@/components/dashboard/MonthSelector";
 import ExpenseForm from "@/components/dashboard/ExpenseForm";
 import ExpenseList from "@/components/dashboard/ExpenseList";
 import RecurringForm from "@/components/dashboard/RecurringForm";
 import RecurringList from "@/components/dashboard/RecurringList";
-import type { RecurringTransaction } from "@/lib/types";
+import SubscriptionList from "@/components/dashboard/SubscriptionList";
 import {
   Card,
   CardHeader,
@@ -43,13 +45,23 @@ export default async function ExpensesPage({
   const tabBase = monthStr ? `?month=${monthStr}&tab=` : "?tab=";
   const expensesHref = `/dashboard/expenses${tabBase}expenses`;
   const recurringHref = `/dashboard/expenses${tabBase}recurring`;
+  const subscriptionsHref = `/dashboard/expenses${tabBase}subscriptions`;
 
-  // Load recurring data when that tab is active
+  // Load recurring data
   let recurring: {
     transactions: RecurringTransaction[];
     totalIncome: number;
     totalExpense: number;
-    monthPreview: Array<{ id: string; type: string; description?: string | null; category?: string | null; source?: string | null; frequency: string; occurrenceCount: number; monthTotal: number }>;
+    monthPreview: Array<{
+      id: string;
+      type: string;
+      description?: string | null;
+      category?: string | null;
+      source?: string | null;
+      frequency: string;
+      occurrenceCount: number;
+      monthTotal: number;
+    }>;
   } | null = null;
 
   if (tab === "recurring") {
@@ -72,11 +84,26 @@ export default async function ExpensesPage({
 
     recurring = {
       transactions,
-      totalIncome: monthPreview.filter((t) => t.type === "income").reduce((s, t) => s + t.monthTotal, 0),
-      totalExpense: monthPreview.filter((t) => t.type === "expense").reduce((s, t) => s + t.monthTotal, 0),
+      totalIncome: monthPreview
+        .filter((t) => t.type === "income")
+        .reduce((s, t) => s + t.monthTotal, 0),
+      totalExpense: monthPreview
+        .filter((t) => t.type === "expense")
+        .reduce((s, t) => s + t.monthTotal, 0),
       monthPreview,
     };
   }
+
+  // Load subscription detection data
+  const subscriptionResult =
+    tab === "subscriptions" ? await detectSubscriptions(supabase) : null;
+  const subscriptions = subscriptionResult?.ok ? subscriptionResult.value : [];
+
+  const subtitleMap: Record<string, string> = {
+    expenses: `Add and manage your spending for ${formatMonthLabel(year, month)}`,
+    recurring: "Set up automatic income and expenses that repeat on a schedule",
+    subscriptions: "Merchants detected across 3+ months — review and manage them",
+  };
 
   return (
     <div className="space-y-8">
@@ -84,12 +111,11 @@ export default async function ExpensesPage({
         <div>
           <h1 className="text-2xl font-bold text-budgetu-heading">Expenses</h1>
           <p className="text-budgetu-muted text-sm mt-1">
-            {tab === "recurring"
-              ? "Set up automatic income and expenses that repeat on a schedule"
-              : `Add and manage your spending for ${formatMonthLabel(year, month)}`}
+            {subtitleMap[tab] ?? subtitleMap.expenses}
           </p>
         </div>
-        <MonthSelector year={year} month={month} />
+        {/* Hide month selector on subscriptions tab — it analyses all-time data */}
+        {tab !== "subscriptions" && <MonthSelector year={year} month={month} />}
       </div>
 
       {/* Tab switcher */}
@@ -97,7 +123,7 @@ export default async function ExpensesPage({
         <Link
           href={expensesHref}
           className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-            tab !== "recurring"
+            tab === "expenses" || tab === undefined || !["recurring", "subscriptions"].includes(tab)
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
@@ -114,10 +140,22 @@ export default async function ExpensesPage({
         >
           Recurring
         </Link>
+        <Link
+          href={subscriptionsHref}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            tab === "subscriptions"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Subscriptions
+        </Link>
       </div>
 
       {/* Tab content */}
-      {tab === "recurring" && recurring ? (
+      {tab === "subscriptions" ? (
+        <SubscriptionList subscriptions={subscriptions} />
+      ) : tab === "recurring" && recurring ? (
         <div className="space-y-8">
           {recurring.transactions.length > 0 && (
             <Card>
@@ -157,7 +195,11 @@ export default async function ExpensesPage({
                           <span className="text-budgetu-body">
                             {t.description || t.category || t.source || "Recurring"}{" "}
                             <span className="text-budgetu-muted">
-                              ({RECURRING_FREQUENCIES[t.frequency as keyof typeof RECURRING_FREQUENCIES]}, {t.occurrenceCount}x)
+                              (
+                              {RECURRING_FREQUENCIES[
+                                t.frequency as keyof typeof RECURRING_FREQUENCIES
+                              ]}
+                              , {t.occurrenceCount}x)
                             </span>
                           </span>
                           <span
