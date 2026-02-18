@@ -17,13 +17,13 @@ import { Trash2, ChevronRight } from "lucide-react";
 import AddDebtDialog from "@/components/dashboard/AddDebtDialog";
 import AddDebtPaymentDialog from "@/components/dashboard/AddDebtPaymentDialog";
 import ConfirmDialog from "@/components/dashboard/ConfirmDialog";
-import EmptyState from "@/components/dashboard/EmptyState";
 
 export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
   const router = useRouter();
   const [debts, setDebts] = useState(initialDebts);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   async function handleDelete() {
     if (!confirmId) return;
@@ -40,16 +40,29 @@ export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
 
   return (
     <>
-    <Card>
+    <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-bold text-budgetu-heading">
           Debt & Loans
         </CardTitle>
-        <AddDebtDialog />
+        <AddDebtDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
       </CardHeader>
       <CardContent>
         {debts.length === 0 ? (
-          <EmptyState message="No debts or loans yet. Add one to track payments!" />
+          <div className="text-center py-8">
+            <div className="mx-auto w-16 h-16 rounded-full bg-budgetu-accent/10 flex items-center justify-center mb-4" aria-hidden>
+              <svg className="w-8 h-8 text-budgetu-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+            </div>
+            <p className="text-budgetu-muted text-sm mb-4">Track student loans, credit cards, car payments, and more.</p>
+            <Button
+              className="bg-budgetu-accent hover:bg-budgetu-accent-hover text-white font-semibold"
+              onClick={() => setAddDialogOpen(true)}
+            >
+              Add Your First Loan
+            </Button>
+          </div>
         ) : (
           <div className="space-y-4">
             {debts.slice(0, 3).map((debt) => {

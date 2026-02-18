@@ -53,7 +53,7 @@ export type DashboardData = {
  *   savings_total     = sum of savings contributions
  *   debt_paid_total   = sum of debt payments
  *   budget_remaining  = income_total - (expense_total + savings_total + debt_paid_total)
- *   savings_rate      = savings_total / income_total (0 if no income)
+ *   savings_rate      = (Income - Expenses) / Income per spec (Total_Saved / Income * 100 as percentage)
  */
 export function computeBudgetSummary(
   incomeTotal: number,
@@ -62,7 +62,8 @@ export function computeBudgetSummary(
   debtPaidTotal: number
 ): BudgetSummary {
   const budgetRemaining = incomeTotal - (expenseTotal + savingsTotal + debtPaidTotal);
-  const savingsRate = incomeTotal > 0 ? savingsTotal / incomeTotal : 0;
+  const totalSaved = incomeTotal - expenseTotal;
+  const savingsRate = incomeTotal > 0 ? totalSaved / incomeTotal : 0;
 
   return {
     incomeTotal,
@@ -182,4 +183,34 @@ export async function getPeriodOverviewData(
     .slice(0, 3);
 
   return ok({ totalIncome, totalSpent, totalSaved, totalDebtPayments, topCategories });
+}
+
+export type MonthlyTrendPoint = {
+  monthLabel: string;
+  spent: number;
+  year: number;
+  month: number;
+};
+
+export async function getMonthlyTrendData(
+  supabase: SupabaseClient,
+  numMonths: number = 3
+): Promise<Result<MonthlyTrendPoint[]>> {
+  const now = new Date();
+  const points: MonthlyTrendPoint[] = [];
+
+  for (let i = numMonths - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    const monthLabel = d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+
+    const expensesResult = await getMonthExpenses(supabase, y, m);
+    const expenses = expensesResult.ok ? expensesResult.value : [];
+    const spent = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+
+    points.push({ monthLabel, spent, year: y, month: m });
+  }
+
+  return ok(points);
 }

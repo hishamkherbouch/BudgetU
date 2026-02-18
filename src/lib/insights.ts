@@ -27,9 +27,11 @@ export function computeInsights(
 
   const spendingRatio =
     monthlyIncome > 0 ? totalSpent / monthlyIncome : 0;
+  /* Spec: Total_Saved = Income - Expenses, Savings_Rate = (Total_Saved / Income) * 100 */
+  const totalSaved = monthlyIncome - totalSpent;
   const savingsRate =
     monthlyIncome > 0
-      ? Math.round(((monthlyIncome - totalSpent) / monthlyIncome) * 100)
+      ? Math.round((totalSaved / monthlyIncome) * 100)
       : 0;
 
   const topCategory =

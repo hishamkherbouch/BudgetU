@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   getDebtPaymentsForDebt,
+  deleteDebt,
   deleteDebtPayment,
   updateDebtPayment,
 } from "@/lib/debts";
@@ -37,6 +38,7 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
   const [editAmount, setEditAmount] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmPayment, setConfirmPayment] = useState<{ id: string; debtId: string } | null>(null);
+  const [confirmDebtId, setConfirmDebtId] = useState<string | null>(null);
 
   const selectedDebt = debts.find((d) => d.id === selectedDebtId);
 
@@ -91,6 +93,19 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
       setEditingPaymentId(null);
       window.location.reload();
     }
+  }
+
+  async function handleDeleteDebt() {
+    if (!confirmDebtId) return;
+    setDeletingId(confirmDebtId);
+    const supabase = createClient();
+    const result = await deleteDebt(supabase, confirmDebtId);
+    if (result.ok) {
+      setDebts((prev) => prev.filter((d) => d.id !== confirmDebtId));
+      if (selectedDebtId === confirmDebtId) router.push("/dashboard/debt");
+    }
+    setDeletingId(null);
+    setConfirmDebtId(null);
   }
 
   function clearSelection() {
@@ -276,6 +291,15 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
                       debtName={debt.name}
                       monthlyPayment={Number(debt.monthly_payment)}
                     />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-budgetu-muted hover:text-destructive"
+                      disabled={deletingId === debt.id}
+                      onClick={() => setConfirmDebtId(debt.id)}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -290,6 +314,14 @@ function DebtsPageInner({ initialDebts }: { initialDebts: Debt[] }) {
         title="Delete payment"
         description="Are you sure you want to delete this payment? This action cannot be undone."
         onConfirm={handleDeletePayment}
+        loading={deletingId !== null}
+      />
+      <ConfirmDialog
+        open={confirmDebtId !== null}
+        onOpenChange={(open) => { if (!open) setConfirmDebtId(null); }}
+        title="Remove debt"
+        description="Are you sure you want to remove this debt and all its payment history? This cannot be undone."
+        onConfirm={handleDeleteDebt}
         loading={deletingId !== null}
       />
     </div>

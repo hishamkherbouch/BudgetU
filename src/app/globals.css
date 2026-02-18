@@ -53,11 +53,24 @@
   --color-budgetu-accent-mid: var(--budgetu-accent-mid);
   --color-budgetu-accent-deep: var(--budgetu-accent-deep);
   --color-budgetu-positive: var(--budgetu-positive);
+  --color-budgetu-warning: var(--budgetu-warning);
   --color-budgetu-heading: var(--budgetu-heading);
   --color-budgetu-body: var(--budgetu-body);
   --color-budgetu-muted: var(--budgetu-muted);
   --color-budgetu-surface: var(--budgetu-surface);
   --color-budgetu-surface-alt: var(--budgetu-surface-alt);
+}
+
+/* Glassmorphism card (Bento / spec) */
+.card-glass {
+  background: rgb(15 23 42 / 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgb(30 41 59);
+}
+.dark .card-glass {
+  background: rgb(15 23 42 / 0.7);
+  border-color: rgb(51 65 85);
 }
 
 :root {
@@ -68,7 +81,8 @@
   --budgetu-accent-light: #a5b4fc;
   --budgetu-accent-mid: #818cf8;
   --budgetu-accent-deep: #4338ca;
-  --budgetu-positive: #059669;
+  --budgetu-positive: #22c55e;
+  --budgetu-warning: #f59e0b;
   --budgetu-heading: #1f2937;
   --budgetu-body: #6b7280;
   --budgetu-muted: #9ca3af;
@@ -108,18 +122,19 @@
 }
 
 .dark {
-  --budgetu-bg: #0f0f0f;
-  --budgetu-accent: #818cf8;
-  --budgetu-accent-hover: #6366f1;
-  --budgetu-accent-light: #6366f1;
+  --budgetu-bg: #0f172a;
+  --budgetu-accent: #6366f1;
+  --budgetu-accent-hover: #818cf8;
+  --budgetu-accent-light: #818cf8;
   --budgetu-accent-mid: #a5b4fc;
-  --budgetu-accent-deep: #6366f1;
-  --budgetu-positive: #34d399;
-  --budgetu-heading: #f3f4f6;
-  --budgetu-body: #9ca3af;
-  --budgetu-muted: #6b7280;
-  --budgetu-surface: #1a1a2e;
-  --budgetu-surface-alt: #222238;
+  --budgetu-accent-deep: #4f46e5;
+  --budgetu-positive: #22c55e;
+  --budgetu-warning: #f59e0b;
+  --budgetu-heading: #f1f5f9;
+  --budgetu-body: #94a3b8;
+  --budgetu-muted: #64748b;
+  --budgetu-surface: rgb(15 23 42 / 0.7);
+  --budgetu-surface-alt: rgb(30 41 59 / 0.5);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -158,7 +173,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
+    @apply bg-budgetu-bg text-budgetu-heading;
+    font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   }
 }

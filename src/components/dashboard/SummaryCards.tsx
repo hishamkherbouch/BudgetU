@@ -39,7 +39,7 @@ export default function SummaryCards({ budget }: { budget: BudgetSummary }) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-      <Card>
+      <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
         <CardContent className="pt-6">
           <p className="text-sm text-budgetu-muted font-medium">
             Income
@@ -51,7 +51,7 @@ export default function SummaryCards({ budget }: { budget: BudgetSummary }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
         <CardContent className="pt-6">
           <p className="text-sm text-budgetu-muted font-medium">
             Spent
@@ -63,7 +63,7 @@ export default function SummaryCards({ budget }: { budget: BudgetSummary }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
         <CardContent className="pt-6">
           <p className="text-sm text-budgetu-muted font-medium">
             Saved
@@ -75,7 +75,7 @@ export default function SummaryCards({ budget }: { budget: BudgetSummary }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
         <CardContent className="pt-6">
           <p className="text-sm text-budgetu-muted font-medium">
             Debt Paid
@@ -87,7 +87,7 @@ export default function SummaryCards({ budget }: { budget: BudgetSummary }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
         <CardContent className="pt-6">
           <p className="text-sm text-budgetu-muted font-medium">
             Remaining
@@ -105,11 +105,11 @@ export default function SummaryCards({ budget }: { budget: BudgetSummary }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
         <CardContent className="pt-6">
           <p className="text-sm text-budgetu-muted font-medium">
             Savings Rate
-            <FormulaTooltip text="Savings / Income. Aim for 20% or higher." />
+            <FormulaTooltip text="(Income − Expenses) ÷ Income. Aim for 20% or higher." />
           </p>
           <p
             className={`text-2xl font-bold mt-1 ${

@@ -35,13 +35,11 @@ export type SavingsGoal = {
 
 export const EXPENSE_CATEGORIES = [
   "Food",
-  "Rent/Housing",
+  "Housing",
   "Transport",
-  "Entertainment",
-  "Shopping",
+  "Subscriptions",
   "Education",
-  "Utilities",
-  "Other",
+  "Entertainment",
 ] as const;
 
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];

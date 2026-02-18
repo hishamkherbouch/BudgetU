@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { createDebt } from "@/lib/debts";
 import { Button } from "@/components/ui/button";
@@ -14,9 +13,29 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export default function AddDebtDialog() {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
+/** Standard amortization formula. Returns null if inputs are invalid. */
+function calcMonthlyPayment(
+  principal: number,
+  annualRatePct: number,
+  months: number
+): number | null {
+  if (principal <= 0 || months <= 0) return null;
+  const r = annualRatePct / 100 / 12;
+  if (r === 0) return parseFloat((principal / months).toFixed(2));
+  const payment = (principal * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
+  return parseFloat(payment.toFixed(2));
+}
+
+type AddDebtDialogProps = {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
+
+export default function AddDebtDialog({ open: controlledOpen, onOpenChange }: AddDebtDialogProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined && onOpenChange !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? onOpenChange! : setInternalOpen;
   const [name, setName] = useState("");
   const [principal, setPrincipal] = useState("");
   const [interestRate, setInterestRate] = useState("");
@@ -25,6 +44,17 @@ export default function AddDebtDialog() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Live-calculate suggested payment when principal + rate + term are filled but payment is blank
+  const suggestedPayment = useMemo(() => {
+    if (monthlyPayment.trim() !== "") return null; // user is providing their own
+    const p = parseFloat(principal);
+    const r = parseFloat(interestRate);
+    const n = parseInt(loanLength, 10);
+    if (isNaN(p) || p <= 0) return null;
+    if (isNaN(n) || n <= 0) return null;
+    return calcMonthlyPayment(p, isNaN(r) ? 0 : r, n);
+  }, [principal, interestRate, loanLength, monthlyPayment]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -32,11 +62,20 @@ export default function AddDebtDialog() {
     const principalNum = parseFloat(principal);
     const interestNum = parseFloat(interestRate);
     const loanLengthNum = loanLength ? parseInt(loanLength, 10) : null;
-    const monthlyNum = parseFloat(monthlyPayment) || 0;
 
     if (isNaN(principalNum) || principalNum < 0) {
       setError("Please enter a valid principal amount.");
       return;
+    }
+
+    // Resolve monthly payment: explicit input > auto-calculated > 0
+    let monthlyNum: number;
+    if (monthlyPayment.trim() !== "") {
+      monthlyNum = parseFloat(monthlyPayment) || 0;
+    } else if (suggestedPayment !== null) {
+      monthlyNum = suggestedPayment;
+    } else {
+      monthlyNum = 0;
     }
 
     setLoading(true);
@@ -128,7 +167,7 @@ export default function AddDebtDialog() {
             </div>
             <div className="space-y-2">
               <label htmlFor="debt-length" className="text-sm font-medium text-budgetu-heading">
-                Loan Length (months)
+                Loan Term (months)
               </label>
               <Input
                 id="debt-length"
@@ -142,17 +181,31 @@ export default function AddDebtDialog() {
           </div>
           <div className="space-y-2">
             <label htmlFor="debt-monthly" className="text-sm font-medium text-budgetu-heading">
-              Monthly Payment ($)
+              Monthly Payment ($){" "}
+              <span className="text-budgetu-muted font-normal">(optional)</span>
             </label>
             <Input
               id="debt-monthly"
               type="number"
               min="0"
               step="0.01"
-              placeholder="0.00"
+              placeholder={
+                suggestedPayment !== null
+                  ? `Auto: $${suggestedPayment.toFixed(2)}`
+                  : "Leave blank to auto-calculate"
+              }
               value={monthlyPayment}
               onChange={(e) => setMonthlyPayment(e.target.value)}
             />
+            {suggestedPayment !== null && (
+              <p className="text-xs text-budgetu-muted">
+                Based on your balance, rate, and term — you&apos;d need{" "}
+                <span className="font-semibold text-budgetu-heading">
+                  ${suggestedPayment.toFixed(2)}/mo
+                </span>{" "}
+                to pay off in {loanLength} months. Leave this field blank to use that amount, or enter your own.
+              </p>
+            )}
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}

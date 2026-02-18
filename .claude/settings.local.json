@@ -24,7 +24,10 @@
       "Bash(cmd.exe /c \"C:\\\\Users\\\\hkher\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe -c \"\"import fitz; doc = fitz.open\\(r''C:\\\\Users\\\\hkher\\\\Desktop\\\\GMUHackathon\\\\BudgetU-Claude-Code-Agent-Files\\\\Instructions for claude.pdf''\\); [print\\(page.get_text\\(\\)\\) for page in doc]\"\"\")",
       "Bash(cmd.exe /c 'C:\\\\Users\\\\hkher\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\Scripts\\\\pip.exe install pymupdf')",
       "Bash(npx:*)",
-      "mcp__supabase__list_projects"
+      "mcp__supabase__list_projects",
+      "Bash(dir:*)",
+      "Bash(pip --version:*)",
+      "Bash(powershell -Command:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

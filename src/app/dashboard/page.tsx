@@ -9,6 +9,8 @@ import { computeInsights } from "@/lib/insights";
 import { parseMonth, formatMonthLabel } from "@/lib/month";
 import MonthSelector from "@/components/dashboard/MonthSelector";
 import SummaryCards from "@/components/dashboard/SummaryCards";
+import HeroBudgetCard from "@/components/dashboard/HeroBudgetCard";
+import SpendingTrendChart from "@/components/dashboard/SpendingTrendChart";
 import CategoryBreakdown from "@/components/dashboard/CategoryBreakdown";
 import SavingsGoals from "@/components/dashboard/SavingsGoals";
 import Debts from "@/components/dashboard/Debts";
@@ -46,7 +48,7 @@ export default async function DashboardPage({
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-budgetu-heading">Dashboard</h1>
@@ -57,10 +59,24 @@ export default async function DashboardPage({
         <MonthSelector year={year} month={month} />
       </div>
 
+      {/* Bento: Hero "Available to Spend" */}
+      <HeroBudgetCard budget={budget} />
+
+      {/* Bento: Summary row */}
       <SummaryCards budget={budget} />
 
-      <PeriodOverview />
+      {/* Bento: 3-month trend + Period overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="rounded-xl border border-border dark:border-slate-700 bg-card dark:bg-slate-900/70 dark:backdrop-blur-md p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-budgetu-heading mb-4">
+            3-Month Spending Trend
+          </h3>
+          <SpendingTrendChart />
+        </div>
+        <PeriodOverview />
+      </div>
 
+      {/* Bento: Category, Savings, Debt */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <CategoryBreakdown categoryTotals={categoryTotals} />
         <SavingsGoals goals={goals} generalSavings={Number(profile.general_savings_balance ?? 0)} />

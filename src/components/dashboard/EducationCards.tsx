@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 
 type CardId = string;
 
@@ -282,66 +289,53 @@ const cards: {
 ];
 
 export default function EducationCards() {
-  const [expandedId, setExpandedId] = useState<CardId | null>(null);
+  const [sheetCardId, setSheetCardId] = useState<CardId | null>(null);
+  const activeCard = cards.find((c) => c.id === sheetCardId);
 
   return (
     <div className="space-y-4">
-      {cards.map((card) => {
-        const isExpanded = expandedId === card.id;
-        return (
-          <article
-            key={card.id}
-            className="border border-border rounded-xl overflow-hidden bg-budgetu-surface hover:border-budgetu-accent/30 transition-colors"
-          >
-            <div
-              className="p-6 cursor-pointer"
-              onClick={() => setExpandedId(isExpanded ? null : card.id)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setExpandedId(isExpanded ? null : card.id);
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              aria-expanded={isExpanded}
-              aria-controls={`education-content-${card.id}`}
-              id={`education-card-${card.id}`}
-            >
-              <div className="flex items-start gap-4">
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-budgetu-heading text-xl font-bold">
-                    {card.title}
-                  </h2>
-                  <p className="text-budgetu-body text-sm mt-1">{card.tagline}</p>
-                </div>
-                <Button
-                  variant={isExpanded ? "secondary" : "default"}
-                  size="sm"
-                  className="shrink-0 bg-budgetu-accent hover:bg-budgetu-accent-hover text-white"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setExpandedId(isExpanded ? null : card.id);
-                  }}
-                >
-                  {isExpanded ? "Show less" : "Learn more"}
-                </Button>
+      {cards.map((card) => (
+        <article
+          key={card.id}
+          className="border border-border rounded-xl overflow-hidden bg-budgetu-surface dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700 hover:border-budgetu-accent/30 transition-colors"
+        >
+          <div className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-budgetu-heading text-xl font-bold">
+                  {card.title}
+                </h2>
+                <p className="text-budgetu-body text-sm mt-1">{card.tagline}</p>
               </div>
-            </div>
-
-            {isExpanded && (
-              <div
-                id={`education-content-${card.id}`}
-                role="region"
-                aria-labelledby={`education-card-${card.id}`}
-                className="border-t border-border bg-budgetu-surface-alt px-6 py-5"
+              <Button
+                variant="default"
+                size="sm"
+                className="shrink-0 bg-budgetu-accent hover:bg-budgetu-accent-hover text-white"
+                onClick={() => setSheetCardId(card.id)}
               >
-                {card.content}
-              </div>
-            )}
-          </article>
-        );
-      })}
+                Start Quest
+              </Button>
+            </div>
+          </div>
+        </article>
+      ))}
+
+      <Sheet open={!!sheetCardId} onOpenChange={(open) => !open && setSheetCardId(null)}>
+        <SheetContent
+          side="right"
+          className="flex flex-col bg-budgetu-surface dark:bg-slate-900 border-slate-800 overflow-y-auto"
+        >
+          {activeCard && (
+            <>
+              <SheetHeader>
+                <SheetTitle>{activeCard.title}</SheetTitle>
+                <SheetDescription>{activeCard.tagline}</SheetDescription>
+              </SheetHeader>
+              <div className="mt-4 flex-1">{activeCard.content}</div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

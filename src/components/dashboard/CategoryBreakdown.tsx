@@ -15,7 +15,7 @@ export default function CategoryBreakdown({
 }) {
   if (categoryTotals.length === 0) {
     return (
-      <Card>
+      <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
         <CardHeader>
           <CardTitle className="text-lg font-bold text-budgetu-heading">
             Spending by Category
@@ -29,7 +29,7 @@ export default function CategoryBreakdown({
   }
 
   return (
-    <Card>
+    <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
       <CardHeader>
         <CardTitle className="text-lg font-bold text-budgetu-heading">
           Spending by Category

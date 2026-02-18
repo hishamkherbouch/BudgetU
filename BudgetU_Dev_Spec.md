@@ -54,3 +54,6 @@
 - [ ] **Performance:** Lazy load the charts on the Dashboard.
 - [ ] **Dark Mode:** Set Dark Mode as the default theme.
 - [ ] **SEO:** Add Meta Tags: 'BudgetU - The Smart Student Budgeting App'.
+
+
+## Rules:
