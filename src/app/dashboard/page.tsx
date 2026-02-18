@@ -7,6 +7,7 @@ import { getSavingsGoals } from "@/lib/savings-goals";
 import { getDebts } from "@/lib/debts";
 import { computeInsights } from "@/lib/insights";
 import { parseMonth, formatMonthLabel } from "@/lib/month";
+import { getCategoryBudgets } from "@/lib/category-budgets";
 import MonthSelector from "@/components/dashboard/MonthSelector";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import HeroBudgetCard from "@/components/dashboard/HeroBudgetCard";
@@ -16,6 +17,7 @@ import SavingsGoals from "@/components/dashboard/SavingsGoals";
 import Debts from "@/components/dashboard/Debts";
 import SpendingInsights from "@/components/dashboard/SpendingInsights";
 import PeriodOverview from "@/components/dashboard/YearToDateOverview";
+import BudgetAlerts from "@/components/dashboard/BudgetAlerts";
 
 export default async function DashboardPage({
   searchParams,
@@ -39,6 +41,9 @@ export default async function DashboardPage({
 
   const debtsResult = await getDebts(supabase);
   const debts = debtsResult.ok ? debtsResult.value : [];
+
+  const budgetsResult = await getCategoryBudgets(supabase);
+  const categoryBudgets = budgetsResult.ok ? budgetsResult.value : [];
 
   const insights = computeInsights(
     budget.incomeTotal,
@@ -76,9 +81,12 @@ export default async function DashboardPage({
         <PeriodOverview />
       </div>
 
+      {/* Budget overspend alerts */}
+      <BudgetAlerts categoryTotals={categoryTotals} categoryBudgets={categoryBudgets} />
+
       {/* Bento: Category, Savings, Debt */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <CategoryBreakdown categoryTotals={categoryTotals} />
+        <CategoryBreakdown categoryTotals={categoryTotals} initialBudgets={categoryBudgets} />
         <SavingsGoals goals={goals} generalSavings={Number(profile.general_savings_balance ?? 0)} />
         <Debts debts={debts} />
       </div>

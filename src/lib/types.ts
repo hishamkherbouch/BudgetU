@@ -101,6 +101,15 @@ export type Category = {
   created_at: string;
 };
 
+export type CategoryBudget = {
+  id: string;
+  user_id: string;
+  category_name: string;
+  monthly_limit: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type SavingsContribution = {
   id: string;
   user_id: string;
