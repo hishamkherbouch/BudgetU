@@ -29,7 +29,18 @@
       "Bash(pip --version:*)",
       "Bash(powershell -Command:*)",
       "Bash(cd:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(gh issue list --repo hkher/GMUHackathon 2>/dev/null || gh issue list 2>/dev/null)",
+      "Bash(gh issue:*)",
+      "Bash(grep:*)",
+      "mcp__claude_ai_Vercel__list_teams",
+      "mcp__claude_ai_Vercel__list_projects",
+      "mcp__claude_ai_Vercel__get_runtime_logs",
+      "mcp__claude_ai_Vercel__get_project",
+      "mcp__claude_ai_Vercel__web_fetch_vercel_url",
+      "Bash(tail:*)",
+      "Bash(head:*)",
+      "Bash(cd /c/Users/hkher/Desktop/GMUHackathon && npm run lint 2>&1)"
     ]
   },
   "enableAllProjectMcpServers": true,
