@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "rls-check": "ts-node --project tsconfig.json --skip-project scripts/rls-check.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
