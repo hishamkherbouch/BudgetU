@@ -72,7 +72,7 @@ export default async function DashboardPage({
 
       {/* Bento: 3-month trend + Period overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-border dark:border-slate-700 bg-card dark:bg-slate-900/70 dark:backdrop-blur-md p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-budgetu-heading mb-4">
             3-Month Spending Trend
           </h3>

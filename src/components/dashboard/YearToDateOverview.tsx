@@ -29,7 +29,7 @@ export default function PeriodOverview() {
     n.toLocaleString("en-US", { minimumFractionDigits: 2 });
 
   return (
-    <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
+    <Card>
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>

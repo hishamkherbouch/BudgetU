@@ -64,7 +64,7 @@ Load only when needed:
 - [x] Initialize Next.js app with Tailwind and shadcn/ui
 - [x] Create Supabase project, tables, and RLS policies (schema.sql ready)
 - [x] Wire Supabase client/server helpers
-- [ ] Configure environment variables and deploy to Vercel (user action needed)
+- [x] Configure environment variables and deploy to Vercel (user action needed)
 - [x] Add basic lint and formatting
 - [x] Port existing landing page (Header, Hero, DashboardPreview) to Tailwind
 
@@ -76,7 +76,7 @@ Load only when needed:
 - [x] Spending insights + risk score (deterministic)
 
 ### Phase 3: Optional (Only if time remains)
-- [ ] AI financial advisor chat (behind env flag with deterministic fallback)
+- [x] AI financial advisor chat (behind env flag with deterministic fallback)
 
 ## What NOT To Do
 - Do NOT delete files without explicit confirmation.

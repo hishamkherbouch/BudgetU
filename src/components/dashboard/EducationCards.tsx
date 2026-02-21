@@ -297,7 +297,7 @@ export default function EducationCards() {
       {cards.map((card) => (
         <article
           key={card.id}
-          className="border border-border rounded-xl overflow-hidden bg-budgetu-surface dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700 hover:border-budgetu-accent/30 transition-colors"
+          className="border border-border rounded-xl overflow-hidden bg-budgetu-surface hover:border-budgetu-accent/30 transition-colors"
         >
           <div className="p-6">
             <div className="flex items-start gap-4">
@@ -323,7 +323,7 @@ export default function EducationCards() {
       <Sheet open={!!sheetCardId} onOpenChange={(open) => !open && setSheetCardId(null)}>
         <SheetContent
           side="right"
-          className="flex flex-col bg-budgetu-surface dark:bg-slate-900 border-slate-800 overflow-y-auto"
+          className="flex flex-col bg-budgetu-surface border-border overflow-y-auto"
         >
           {activeCard && (
             <>

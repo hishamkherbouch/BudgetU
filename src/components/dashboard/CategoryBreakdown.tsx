@@ -39,7 +39,7 @@ export default function CategoryBreakdown({
 
   if (categoryTotals.length === 0) {
     return (
-      <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg font-bold text-budgetu-heading">
             Spending by Category
@@ -55,7 +55,7 @@ export default function CategoryBreakdown({
   const budgetMap = new Map(budgets.map((b) => [b.category_name, b]));
 
   return (
-    <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
+    <Card>
       <CardHeader>
         <CardTitle className="text-lg font-bold text-budgetu-heading">
           Spending by Category

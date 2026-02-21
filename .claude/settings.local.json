@@ -27,7 +27,9 @@
       "mcp__supabase__list_projects",
       "Bash(dir:*)",
       "Bash(pip --version:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(cd:*)",
+      "Bash(cat:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

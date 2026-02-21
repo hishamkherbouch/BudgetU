@@ -9,7 +9,7 @@ export default function HeroBudgetCard({ budget }: { budget: BudgetSummary }) {
 
   return (
     <div
-      className="relative rounded-2xl p-6 sm:p-8 bg-card dark:bg-slate-900/70 dark:backdrop-blur-md border border-border dark:border-slate-700 shadow-sm"
+      className="relative rounded-2xl p-6 sm:p-8 bg-card border border-border shadow-sm"
       style={{
         boxShadow:
           budgetRemaining >= 0

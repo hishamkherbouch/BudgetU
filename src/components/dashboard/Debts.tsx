@@ -40,7 +40,7 @@ export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
 
   return (
     <>
-    <Card className="dark:bg-slate-900/70 dark:backdrop-blur-md dark:border-slate-700">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-bold text-budgetu-heading">
           Debt & Loans
