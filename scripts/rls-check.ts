@@ -16,6 +16,22 @@
  */
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import * as fs from "fs";
+import * as path from "path";
+
+// Load .env.local so the script works without manually setting env vars
+const envPath = path.resolve(process.cwd(), ".env.local");
+if (fs.existsSync(envPath)) {
+  for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, "");
+    if (!process.env[key]) process.env[key] = val;
+  }
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -114,7 +130,12 @@ async function assertDeleteBlocked(
   ownerId: string,
   rowId: string
 ) {
-  const { error } = await client
+  if (!rowId) {
+    fail(label, "row was never created — insert by User A failed (check earlier errors)");
+    return;
+  }
+
+  await client
     .from(table)
     .delete()
     .eq("id", rowId)
@@ -175,11 +196,12 @@ async function run() {
   try {
     // ── 1. expenses ──────────────────────────────────────────────────────
     console.log("Table: expenses");
-    const { data: exp } = await clientA
+    const { data: exp, error: expInsertErr } = await clientA
       .from("expenses")
-      .insert({ amount: 9.99, category: "Test", date: "2026-01-01" })
+      .insert({ user_id: userAId, amount: 9.99, category: "Test", date: "2026-01-01" })
       .select("id")
       .single();
+    if (expInsertErr) console.error("  [setup] expense insert failed:", expInsertErr.message);
     ids.expense = exp?.id ?? "";
 
     await assertEmpty("SELECT blocked", clientB, "expenses", "user_id", userAId);
@@ -188,11 +210,12 @@ async function run() {
 
     // ── 2. income_entries ────────────────────────────────────────────────
     console.log("\nTable: income_entries");
-    const { data: inc } = await clientA
+    const { data: inc, error: incInsertErr } = await clientA
       .from("income_entries")
-      .insert({ amount: 100, source: "Test", date: "2026-01-01" })
+      .insert({ user_id: userAId, amount: 100, source: "Test", date: "2026-01-01" })
       .select("id")
       .single();
+    if (incInsertErr) console.error("  [setup] income insert failed:", incInsertErr.message);
     ids.income = inc?.id ?? "";
 
     await assertEmpty("SELECT blocked", clientB, "income_entries", "user_id", userAId);
@@ -200,11 +223,12 @@ async function run() {
 
     // ── 3. savings_goals ─────────────────────────────────────────────────
     console.log("\nTable: savings_goals");
-    const { data: sg } = await clientA
+    const { data: sg, error: sgInsertErr } = await clientA
       .from("savings_goals")
-      .insert({ name: "Test Goal", target_amount: 500, is_emergency_fund: false })
+      .insert({ user_id: userAId, name: "Test Goal", target_amount: 500, is_emergency_fund: false })
       .select("id")
       .single();
+    if (sgInsertErr) console.error("  [setup] savings_goal insert failed:", sgInsertErr.message);
     ids.goal = sg?.id ?? "";
 
     await assertEmpty("SELECT blocked", clientB, "savings_goals", "user_id", userAId);
@@ -213,11 +237,12 @@ async function run() {
     // ── 4. savings_contributions ─────────────────────────────────────────
     if (ids.goal) {
       console.log("\nTable: savings_contributions");
-      const { data: sc } = await clientA
+      const { data: sc, error: scInsertErr } = await clientA
         .from("savings_contributions")
-        .insert({ goal_id: ids.goal, amount: 25, date: "2026-01-01" })
+        .insert({ user_id: userAId, goal_id: ids.goal, amount: 25, date: "2026-01-01" })
         .select("id")
         .single();
+      if (scInsertErr) console.error("  [setup] savings_contribution insert failed:", scInsertErr.message);
       ids.contribution = sc?.id ?? "";
 
       await assertEmpty("SELECT blocked", clientB, "savings_contributions", "user_id", userAId);
@@ -226,9 +251,10 @@ async function run() {
 
     // ── 5. debts ─────────────────────────────────────────────────────────
     console.log("\nTable: debts");
-    const { data: dt } = await clientA
+    const { data: dt, error: dtInsertErr } = await clientA
       .from("debts")
       .insert({
+        user_id: userAId,
         name: "Test Loan",
         debt_type: "other",
         principal: 1000,
@@ -237,6 +263,7 @@ async function run() {
       })
       .select("id")
       .single();
+    if (dtInsertErr) console.error("  [setup] debt insert failed:", dtInsertErr.message);
     ids.debt = dt?.id ?? "";
 
     await assertEmpty("SELECT blocked", clientB, "debts", "user_id", userAId);
@@ -245,11 +272,12 @@ async function run() {
     // ── 6. debt_payments ─────────────────────────────────────────────────
     if (ids.debt) {
       console.log("\nTable: debt_payments");
-      const { data: dp } = await clientA
+      const { data: dp, error: dpInsertErr } = await clientA
         .from("debt_payments")
-        .insert({ debt_id: ids.debt, amount: 50, date: "2026-01-01" })
+        .insert({ user_id: userAId, debt_id: ids.debt, amount: 50, date: "2026-01-01" })
         .select("id")
         .single();
+      if (dpInsertErr) console.error("  [setup] debt_payment insert failed:", dpInsertErr.message);
       ids.debtPayment = dp?.id ?? "";
 
       await assertEmpty("SELECT blocked", clientB, "debt_payments", "user_id", userAId);
@@ -258,9 +286,10 @@ async function run() {
 
     // ── 7. recurring_transactions ────────────────────────────────────────
     console.log("\nTable: recurring_transactions");
-    const { data: rt } = await clientA
+    const { data: rt, error: rtInsertErr } = await clientA
       .from("recurring_transactions")
       .insert({
+        user_id: userAId,
         type: "expense",
         amount: 15,
         category: "Test",
@@ -269,6 +298,7 @@ async function run() {
       })
       .select("id")
       .single();
+    if (rtInsertErr) console.error("  [setup] recurring insert failed:", rtInsertErr.message);
     ids.recurring = rt?.id ?? "";
 
     await assertEmpty("SELECT blocked", clientB, "recurring_transactions", "user_id", userAId);
@@ -276,11 +306,12 @@ async function run() {
 
     // ── 8. subscription_overrides ────────────────────────────────────────
     console.log("\nTable: subscription_overrides");
-    const { data: so } = await clientA
+    const { data: so, error: soInsertErr } = await clientA
       .from("subscription_overrides")
-      .insert({ merchant_key: "test-merchant", status: "ignored" })
+      .insert({ user_id: userAId, merchant_key: "test-merchant", status: "ignored" })
       .select("id")
       .single();
+    if (soInsertErr) console.error("  [setup] subscription_override insert failed:", soInsertErr.message);
     ids.override = so?.id ?? "";
 
     await assertEmpty("SELECT blocked", clientB, "subscription_overrides", "user_id", userAId);
@@ -288,11 +319,12 @@ async function run() {
 
     // ── 9. category_budgets ──────────────────────────────────────────────
     console.log("\nTable: category_budgets");
-    const { data: cb } = await clientA
+    const { data: cb, error: cbInsertErr } = await clientA
       .from("category_budgets")
-      .insert({ category_name: "Test Category", monthly_limit: 100 })
+      .insert({ user_id: userAId, category_name: "Test Category", monthly_limit: 100 })
       .select("id")
       .single();
+    if (cbInsertErr) console.error("  [setup] category_budget insert failed:", cbInsertErr.message);
     ids.categoryBudget = cb?.id ?? "";
 
     await assertEmpty("SELECT blocked", clientB, "category_budgets", "user_id", userAId);
