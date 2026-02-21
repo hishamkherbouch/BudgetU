@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { addIncomeEntry } from "@/lib/income";
-import { INCOME_SOURCES } from "@/lib/types";
+import { getIncomeCategories, addCustomCategory, deleteCustomCategory } from "@/lib/categories";
+import type { Category } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,16 +20,65 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
+import { Trash2, Settings } from "lucide-react";
 
 export default function IncomeForm() {
   const [amount, setAmount] = useState("");
-  const [source, setSource] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customName, setCustomName] = useState("");
+  const [showManage, setShowManage] = useState(false);
+
+  useEffect(() => {
+    async function loadCategories() {
+      const supabase = createClient();
+      const result = await getIncomeCategories(supabase);
+      if (result.ok) setCategories(result.value);
+    }
+    loadCategories();
+  }, []);
+
+  const customCategories = categories.filter((c) => !c.is_default);
+
+  async function handleAddCustom() {
+    const trimmed = customName.trim();
+    if (!trimmed) return;
+
+    setError("");
+    const supabase = createClient();
+    const result = await addCustomCategory(supabase, trimmed, "income");
+    if (result.ok) {
+      setCategories((prev) => [...prev, result.value]);
+      setCategoryId(result.value.id);
+      setShowCustomInput(false);
+      setCustomName("");
+    } else {
+      setError(result.error);
+    }
+  }
+
+  async function handleDeleteCustom(id: string) {
+    const supabase = createClient();
+    const result = await deleteCustomCategory(supabase, id);
+    if (result.ok) {
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+      if (categoryId === id) setCategoryId("");
+    }
+  }
+
+  function handleCategoryChange(value: string) {
+    if (value === "__custom__") {
+      setShowCustomInput(true);
+      return;
+    }
+    setCategoryId(value);
+    setShowCustomInput(false);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,16 +90,24 @@ export default function IncomeForm() {
       return;
     }
 
-    if (!source) {
-      setError("Please select a source.");
+    if (!categoryId) {
+      setError("Please select a category.");
+      return;
+    }
+
+    const selectedCat = categories.find((c) => c.id === categoryId);
+    if (!selectedCat) {
+      setError("Please select a valid category.");
       return;
     }
 
     setLoading(true);
     const supabase = createClient();
+
     const result = await addIncomeEntry(supabase, {
       amount: parsedAmount,
-      source,
+      source: selectedCat.name,
+      category_id: selectedCat.id,
       description,
       date,
     });
@@ -61,7 +119,7 @@ export default function IncomeForm() {
     }
 
     setAmount("");
-    setSource("");
+    setCategoryId("");
     setDescription("");
     setDate(new Date().toISOString().split("T")[0]);
     setLoading(false);
@@ -96,24 +154,104 @@ export default function IncomeForm() {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-budgetu-heading">
-                Source
+                Category
               </label>
-              <Select value={source} onValueChange={setSource}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select source" />
-                </SelectTrigger>
-                <SelectContent>
-                  {INCOME_SOURCES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {showCustomInput ? (
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="New category name"
+                    value={customName}
+                    onChange={(e) => setCustomName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCustom();
+                      }
+                    }}
+                    autoFocus
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="bg-budgetu-accent hover:bg-budgetu-accent-hover text-white"
+                    onClick={handleAddCustom}
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setShowCustomInput(false);
+                      setCustomName("");
+                      setError("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Select value={categoryId} onValueChange={handleCategoryChange}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                          {!cat.is_default && " (custom)"}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="__custom__">
+                        + Add custom category
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {customCategories.length > 0 && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setShowManage(!showManage)}
+                      title="Manage custom categories"
+                      className="text-budgetu-muted hover:text-budgetu-heading shrink-0"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+
+          {showManage && customCategories.length > 0 && (
+            <div className="rounded-md border border-border p-3 space-y-2">
+              <p className="text-sm font-medium text-budgetu-heading">
+                Custom Income Categories
+              </p>
+              {customCategories.map((cat) => (
+                <div key={cat.id} className="flex items-center justify-between">
+                  <span className="text-sm text-budgetu-heading">{cat.name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteCustom(cat.id)}
+                    className="text-budgetu-muted hover:text-destructive h-7 w-7 p-0"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label

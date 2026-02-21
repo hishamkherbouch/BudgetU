@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { addExpense } from "@/lib/expenses";
-import { getCategories, addCustomCategory, deleteCustomCategory } from "@/lib/categories";
+import { getExpenseCategories, addCustomCategory, deleteCustomCategory } from "@/lib/categories";
 import type { Category } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,7 @@ export default function ExpenseForm() {
   useEffect(() => {
     async function loadCategories() {
       const supabase = createClient();
-      const result = await getCategories(supabase);
+      const result = await getExpenseCategories(supabase);
       if (result.ok) setCategories(result.value);
     }
     loadCategories();

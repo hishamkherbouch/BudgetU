@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Papa from "papaparse";
 import { createClient } from "@/lib/supabase/client";
-import { getCategories } from "@/lib/categories";
+import { getExpenseCategories } from "@/lib/categories";
 import {
   autoCategorize,
   computeHash,
@@ -53,7 +53,7 @@ export default function ImportPage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient();
-      const result = await getCategories(supabase);
+      const result = await getExpenseCategories(supabase);
       if (result.ok) setCategories(result.value);
     }
     load();
