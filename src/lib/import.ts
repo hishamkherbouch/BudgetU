@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Category } from "@/lib/types";
+import { getExpenseCategories } from "@/lib/categories";
 import { ok, err, type Result } from "@/lib/result";
 
 export type ParsedExpense = {

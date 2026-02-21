@@ -7,6 +7,7 @@ export async function addIncomeEntry(
   entry: {
     amount: number;
     source: string;
+    category_id?: string | null;
     description: string;
     date: string;
   }
@@ -23,6 +24,7 @@ export async function addIncomeEntry(
       user_id: user.id,
       amount: entry.amount,
       source: entry.source,
+      category_id: entry.category_id ?? null,
       description: entry.description || null,
       date: entry.date,
     })
@@ -117,7 +119,7 @@ export async function getIncomeInRange(
 export async function updateIncomeEntry(
   supabase: SupabaseClient,
   id: string,
-  updates: { amount?: number; source?: string; description?: string; date?: string }
+  updates: { amount?: number; source?: string; category_id?: string | null; description?: string; date?: string }
 ): Promise<Result<null>> {
   const {
     data: { user },

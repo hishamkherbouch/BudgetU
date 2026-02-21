@@ -85,16 +85,20 @@ export type IncomeEntry = {
   user_id: string;
   amount: number;
   source: string;
+  category_id: string | null;
   description: string | null;
   date: string;
   created_at: string;
   updated_at: string;
 };
 
+export type CategoryType = "expense" | "income" | "both";
+
 export type Category = {
   id: string;
   user_id: string | null;
   name: string;
+  type: CategoryType;
   icon: string | null;
   color: string | null;
   is_default: boolean;

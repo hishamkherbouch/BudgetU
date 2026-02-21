@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Category } from "@/lib/types";
+import type { Category, CategoryType } from "@/lib/types";
 import { ok, err, type Result } from "@/lib/result";
 
+/** Returns all categories visible to the user (defaults + their own custom). */
 export async function getCategories(
   supabase: SupabaseClient
 ): Promise<Result<Category[]>> {
@@ -22,9 +23,54 @@ export async function getCategories(
   return ok((data ?? []) as Category[]);
 }
 
+/** Categories usable on expense forms (type = 'expense' or 'both'). */
+export async function getExpenseCategories(
+  supabase: SupabaseClient
+): Promise<Result<Category[]>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .or(`user_id.is.null,user_id.eq.${user.id}`)
+    .in("type", ["expense", "both"])
+    .order("is_default", { ascending: false })
+    .order("name");
+
+  if (error) return err(error.message);
+  return ok((data ?? []) as Category[]);
+}
+
+/** Categories usable on income forms (type = 'income' or 'both'). */
+export async function getIncomeCategories(
+  supabase: SupabaseClient
+): Promise<Result<Category[]>> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return err("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .or(`user_id.is.null,user_id.eq.${user.id}`)
+    .in("type", ["income", "both"])
+    .order("is_default", { ascending: false })
+    .order("name");
+
+  if (error) return err(error.message);
+  return ok((data ?? []) as Category[]);
+}
+
 export async function addCustomCategory(
   supabase: SupabaseClient,
-  name: string
+  name: string,
+  type: CategoryType = "expense"
 ): Promise<Result<Category>> {
   const {
     data: { user },
@@ -52,6 +98,7 @@ export async function addCustomCategory(
     .insert({
       user_id: user.id,
       name: trimmed,
+      type,
       is_default: false,
     })
     .select()
