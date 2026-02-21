@@ -27,7 +27,10 @@
       "mcp__supabase__list_projects",
       "Bash(dir:*)",
       "Bash(pip --version:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue close:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
