@@ -21,9 +21,16 @@ function normalizeMerchant(description: string): string {
 export async function detectSubscriptions(
   supabase: SupabaseClient
 ): Promise<Result<DetectedSubscription[]>> {
+  // Explicitly scope to the authenticated user (defense-in-depth on top of RLS)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return err("Not authenticated");
+
   const { data: expenseData, error: expError } = await supabase
     .from("expenses")
     .select("description, amount, date")
+    .eq("user_id", user.id)
     .not("description", "is", null)
     .order("date", { ascending: false });
 
@@ -81,10 +88,11 @@ export async function detectSubscriptions(
     }
   }
 
-  // Fetch overrides
+  // Fetch overrides – explicit filter matches the index on (user_id, merchant_key)
   const { data: overrideData, error: overrideError } = await supabase
     .from("subscription_overrides")
-    .select("merchant_key, status");
+    .select("merchant_key, status")
+    .eq("user_id", user.id);
 
   if (overrideError) return err(overrideError.message);
 

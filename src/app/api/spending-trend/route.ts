@@ -7,6 +7,14 @@ export async function GET(request: NextRequest) {
   const months = Math.min(12, Math.max(1, Number(monthsParam) || 3));
 
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
   const result = await getMonthlyTrendData(supabase, months);
 
   if (!result.ok) {

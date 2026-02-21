@@ -40,7 +40,10 @@
       "mcp__claude_ai_Vercel__web_fetch_vercel_url",
       "Bash(tail:*)",
       "Bash(head:*)",
-      "Bash(cd /c/Users/hkher/Desktop/GMUHackathon && npm run lint 2>&1)"
+      "Bash(cd /c/Users/hkher/Desktop/GMUHackathon && npm run lint 2>&1)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue close:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
