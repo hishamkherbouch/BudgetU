@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { addExpense } from "@/lib/expenses";
 import { getCategories, addCustomCategory, deleteCustomCategory } from "@/lib/categories";
@@ -24,7 +23,6 @@ import {
 import { Trash2, Settings } from "lucide-react";
 
 export default function ExpenseForm() {
-  const router = useRouter();
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");

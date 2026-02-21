@@ -18,18 +18,12 @@ export default function ThemeProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "light";
+    return (localStorage.getItem("budgetu-theme") as Theme) ?? "light";
+  });
 
   useEffect(() => {
-    const stored = localStorage.getItem("budgetu-theme") as Theme | null;
-    const initial = stored ?? "light";
-    setTheme(initial);
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
     const root = document.documentElement;
     if (theme === "dark") {
       root.classList.add("dark");
@@ -37,7 +31,7 @@ export default function ThemeProvider({
       root.classList.remove("dark");
     }
     localStorage.setItem("budgetu-theme", theme);
-  }, [theme, mounted]);
+  }, [theme]);
 
   function toggleTheme() {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));

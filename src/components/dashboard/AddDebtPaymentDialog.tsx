@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { addDebtPayment } from "@/lib/debts";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ export default function AddDebtPaymentDialog({
   debtName: string;
   monthlyPayment: number;
 }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(monthlyPayment > 0 ? String(monthlyPayment) : "");
   const [isExtra, setIsExtra] = useState(false);

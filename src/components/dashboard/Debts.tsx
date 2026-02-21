@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { deleteDebt } from "@/lib/debts";
@@ -19,7 +18,6 @@ import AddDebtPaymentDialog from "@/components/dashboard/AddDebtPaymentDialog";
 import ConfirmDialog from "@/components/dashboard/ConfirmDialog";
 
 export default function Debts({ debts: initialDebts }: { debts: Debt[] }) {
-  const router = useRouter();
   const [debts, setDebts] = useState(initialDebts);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);

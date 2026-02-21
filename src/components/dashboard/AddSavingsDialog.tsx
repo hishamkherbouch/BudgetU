@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { updateSavingsProgress } from "@/lib/savings-goals";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,6 @@ export default function AddSavingsDialog({
   goalId: string;
   goalName: string;
 }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");

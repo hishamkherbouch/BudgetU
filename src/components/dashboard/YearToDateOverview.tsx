@@ -15,14 +15,16 @@ const PERIOD_LABELS: Record<Period, string> = {
 export default function PeriodOverview() {
   const [period, setPeriod] = useState<Period>(3);
   const [data, setData] = useState<PeriodOverviewData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [fetchedPeriod, setFetchedPeriod] = useState<Period | null>(null);
+  const loading = fetchedPeriod !== period;
 
   useEffect(() => {
-    setLoading(true);
     fetch(`/api/period-overview?months=${period}`)
       .then((res) => res.json())
-      .then((json) => setData(json))
-      .finally(() => setLoading(false));
+      .then((json) => {
+        setData(json);
+        setFetchedPeriod(period);
+      });
   }, [period]);
 
   const formatCurrency = (n: number) =>

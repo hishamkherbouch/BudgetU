@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { deleteSavingsGoal } from "@/lib/savings-goals";
 import type { SavingsGoal } from "@/lib/types";
@@ -27,7 +26,6 @@ export default function SavingsGoals({
   goals: SavingsGoal[];
   generalSavings?: number;
 }) {
-  const router = useRouter();
   const [goals, setGoals] = useState(initialGoals);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
