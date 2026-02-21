@@ -14,6 +14,14 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
   const result = await getPeriodOverviewData(supabase, months);
 
   if (!result.ok) {
