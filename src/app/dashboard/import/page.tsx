@@ -30,7 +30,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Upload, AlertTriangle, CheckCircle } from "lucide-react";
+import { Upload, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 
 type Step = "upload" | "map" | "preview" | "done";
 
@@ -47,6 +47,7 @@ export default function ImportPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState("");
   const [importing, setImporting] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [importedCount, setImportedCount] = useState(0);
 
   useEffect(() => {
@@ -58,18 +59,43 @@ export default function ImportPage() {
     load();
   }, []);
 
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setError("");
 
+    const isPdf =
+      file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    const isCsv =
+      file.type === "text/csv" ||
+      file.type === "application/csv" ||
+      file.name.toLowerCase().endsWith(".csv");
+
+    if (!isPdf && !isCsv) {
+      setError(
+        "Unsupported file type. Please upload a CSV export or a PDF statement from your bank."
+      );
+      return;
+    }
+
+    if (isCsv) {
+      handleCsvFile(file);
+    } else {
+      await handlePdfFile(file);
+    }
+  }
+
+  function handleCsvFile(file: File) {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete(results) {
-        if (results.errors.length > 0) {
-          setError(`CSV parsing error: ${results.errors[0].message}`);
+        // Allow partial results — only fail if we got zero rows
+        if (results.data.length === 0) {
+          setError(
+            "We couldn't read this CSV. Try exporting it again from your bank, or check that it's a valid CSV file."
+          );
           return;
         }
 
@@ -84,7 +110,7 @@ export default function ImportPage() {
         setCsvHeaders(headers);
         setCsvRows(rows);
 
-        // Try to auto-detect column mapping
+        // Auto-detect column mapping
         const lower = headers.map((h) => h.toLowerCase());
         const dateCol = headers.find((_, i) =>
           ["date", "transaction date", "trans date", "posted date"].includes(lower[i])
@@ -93,7 +119,15 @@ export default function ImportPage() {
           ["amount", "debit", "charge", "total", "price"].includes(lower[i])
         );
         const descCol = headers.find((_, i) =>
-          ["description", "memo", "name", "merchant", "payee", "details", "transaction"].includes(lower[i])
+          [
+            "description",
+            "memo",
+            "name",
+            "merchant",
+            "payee",
+            "details",
+            "transaction",
+          ].includes(lower[i])
         );
 
         setMapping({
@@ -104,10 +138,82 @@ export default function ImportPage() {
 
         setStep("map");
       },
-      error(err) {
-        setError(`Failed to read CSV: ${err.message}`);
+      error() {
+        setError(
+          "We couldn't read this CSV. Try exporting it again from your bank, or check that it's a valid CSV file."
+        );
       },
     });
+  }
+
+  async function handlePdfFile(file: File) {
+    setProcessing(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/parse-pdf", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+
+      if (!data.ok) {
+        setError(data.error ?? "Failed to process PDF.");
+        return;
+      }
+
+      type RawTransaction = {
+        date: string;
+        description: string;
+        amount: number;
+        type: string;
+      };
+
+      const supabase = createClient();
+      const hashResult = await getExistingHashes(supabase);
+      if (!hashResult.ok) {
+        setError(hashResult.error);
+        return;
+      }
+
+      const existingHashes = hashResult.value;
+      const parsed: ParsedExpense[] = [];
+
+      for (const tx of data.transactions as RawTransaction[]) {
+        if (tx.type !== "expense") continue;
+        const amount = Math.abs(Number(tx.amount));
+        if (isNaN(amount) || amount <= 0) continue;
+        if (!tx.date) continue;
+
+        const { name, id } = autoCategorize(tx.description ?? "", categories);
+        const hash = computeHash(tx.date, amount, tx.description ?? "");
+
+        parsed.push({
+          date: tx.date,
+          amount,
+          description: tx.description ?? "",
+          category: name,
+          category_id: id,
+          hash,
+          isDuplicate: existingHashes.has(hash),
+        });
+      }
+
+      if (parsed.length === 0) {
+        setError(
+          "No expense transactions found in this PDF. If this is a statement, make sure it's a text-based PDF (not a scanned image), or try a CSV export from your bank."
+        );
+        return;
+      }
+
+      setParsedExpenses(parsed);
+      setStep("preview");
+    } catch {
+      setError("Failed to process PDF. Please try a CSV export from your bank instead.");
+    } finally {
+      setProcessing(false);
+    }
   }
 
   const processMapping = useCallback(async () => {
@@ -197,32 +303,48 @@ export default function ImportPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-bold text-budgetu-heading">
-              Upload CSV File
+              Upload Bank Statement
             </CardTitle>
             <CardDescription>
-              Upload a CSV file from your bank or spreadsheet. Common formats from
-              Chase, Bank of America, and most banks are supported.
+              Upload a CSV export or PDF statement from your bank. Chase, Bank of
+              America, and most major banks are supported.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-              <Upload className="h-8 w-8 mx-auto mb-3 text-budgetu-muted" />
-              <Input
-                type="file"
-                accept=".csv"
-                onChange={handleFileUpload}
-                className="max-w-xs mx-auto"
-              />
-              <p className="text-sm text-budgetu-muted mt-2">
-                CSV files only. Max recommended: 500 rows.
-              </p>
+              {processing ? (
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-budgetu-accent" />
+                  <p className="text-sm font-medium text-budgetu-heading">
+                    Reading your statement with AI...
+                  </p>
+                  <p className="text-xs text-budgetu-muted">
+                    This may take a few seconds.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <Upload className="h-8 w-8 mx-auto mb-3 text-budgetu-muted" />
+                  <Input
+                    type="file"
+                    accept=".csv,text/csv,.pdf,application/pdf"
+                    onChange={handleFileUpload}
+                    className="max-w-xs mx-auto"
+                    disabled={processing}
+                  />
+                  <p className="text-sm text-budgetu-muted mt-2">
+                    Supports CSV exports and PDF statements. Max recommended: 500
+                    transactions.
+                  </p>
+                </>
+              )}
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
           </CardContent>
         </Card>
       )}
 
-      {/* Step 2: Map Columns */}
+      {/* Step 2: Map Columns (CSV only) */}
       {step === "map" && (
         <Card>
           <CardHeader>
@@ -240,13 +362,18 @@ export default function ImportPage() {
                 <label className="text-sm font-medium text-budgetu-heading">
                   Date Column *
                 </label>
-                <Select value={mapping.date} onValueChange={(v) => setMapping((m) => ({ ...m, date: v }))}>
+                <Select
+                  value={mapping.date}
+                  onValueChange={(v) => setMapping((m) => ({ ...m, date: v }))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select column" />
                   </SelectTrigger>
                   <SelectContent>
                     {csvHeaders.map((h) => (
-                      <SelectItem key={h} value={h}>{h}</SelectItem>
+                      <SelectItem key={h} value={h}>
+                        {h}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -255,13 +382,18 @@ export default function ImportPage() {
                 <label className="text-sm font-medium text-budgetu-heading">
                   Amount Column *
                 </label>
-                <Select value={mapping.amount} onValueChange={(v) => setMapping((m) => ({ ...m, amount: v }))}>
+                <Select
+                  value={mapping.amount}
+                  onValueChange={(v) => setMapping((m) => ({ ...m, amount: v }))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select column" />
                   </SelectTrigger>
                   <SelectContent>
                     {csvHeaders.map((h) => (
-                      <SelectItem key={h} value={h}>{h}</SelectItem>
+                      <SelectItem key={h} value={h}>
+                        {h}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -270,13 +402,18 @@ export default function ImportPage() {
                 <label className="text-sm font-medium text-budgetu-heading">
                   Description Column *
                 </label>
-                <Select value={mapping.description} onValueChange={(v) => setMapping((m) => ({ ...m, description: v }))}>
+                <Select
+                  value={mapping.description}
+                  onValueChange={(v) => setMapping((m) => ({ ...m, description: v }))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select column" />
                   </SelectTrigger>
                   <SelectContent>
                     {csvHeaders.map((h) => (
-                      <SelectItem key={h} value={h}>{h}</SelectItem>
+                      <SelectItem key={h} value={h}>
+                        {h}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -291,7 +428,10 @@ export default function ImportPage() {
                   <thead>
                     <tr className="bg-muted/50">
                       {csvHeaders.map((h) => (
-                        <th key={h} className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">
+                        <th
+                          key={h}
+                          className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border"
+                        >
                           {h}
                         </th>
                       ))}
@@ -321,7 +461,13 @@ export default function ImportPage() {
               >
                 Continue to Preview
               </Button>
-              <Button variant="ghost" onClick={() => { setStep("upload"); setError(""); }}>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setStep("upload");
+                  setError("");
+                }}
+              >
                 Back
               </Button>
             </div>
@@ -340,10 +486,12 @@ export default function ImportPage() {
               {parsedExpenses.length} expenses parsed.{" "}
               {duplicateCount > 0 && (
                 <span className="text-yellow-600">
-                  {duplicateCount} duplicate{duplicateCount !== 1 ? "s" : ""} detected and will be skipped.
+                  {duplicateCount} duplicate{duplicateCount !== 1 ? "s" : ""} detected and
+                  will be skipped.
                 </span>
               )}{" "}
-              <strong>{newCount}</strong> new expense{newCount !== 1 ? "s" : ""} will be imported.
+              <strong>{newCount}</strong> new expense{newCount !== 1 ? "s" : ""} will be
+              imported.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -351,11 +499,21 @@ export default function ImportPage() {
               <table className="w-full text-sm border border-border">
                 <thead className="sticky top-0 bg-budgetu-surface">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">Status</th>
-                    <th className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">Date</th>
-                    <th className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">Amount</th>
-                    <th className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">Description</th>
-                    <th className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">Category</th>
+                    <th className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">
+                      Status
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">
+                      Date
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">
+                      Amount
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">
+                      Description
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-budgetu-heading border-b border-border">
+                      Category
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -366,20 +524,30 @@ export default function ImportPage() {
                     >
                       <td className="px-3 py-2">
                         {exp.isDuplicate ? (
-                          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                          <Badge
+                            variant="outline"
+                            className="text-yellow-600 border-yellow-600"
+                          >
                             <AlertTriangle className="h-3 w-3 mr-1" />
                             Duplicate
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-budgetu-positive border-budgetu-positive">
+                          <Badge
+                            variant="outline"
+                            className="text-budgetu-positive border-budgetu-positive"
+                          >
                             <CheckCircle className="h-3 w-3 mr-1" />
                             New
                           </Badge>
                         )}
                       </td>
                       <td className="px-3 py-2 text-budgetu-body">{exp.date}</td>
-                      <td className="px-3 py-2 text-budgetu-body">${exp.amount.toFixed(2)}</td>
-                      <td className="px-3 py-2 text-budgetu-body truncate max-w-[200px]">{exp.description}</td>
+                      <td className="px-3 py-2 text-budgetu-body">
+                        ${exp.amount.toFixed(2)}
+                      </td>
+                      <td className="px-3 py-2 text-budgetu-body truncate max-w-[200px]">
+                        {exp.description}
+                      </td>
                       <td className="px-3 py-2">
                         <Badge variant="secondary">{exp.category}</Badge>
                       </td>
@@ -397,9 +565,17 @@ export default function ImportPage() {
                 disabled={importing || newCount === 0}
                 className="bg-budgetu-accent hover:bg-budgetu-accent-hover text-white"
               >
-                {importing ? "Importing..." : `Import ${newCount} Expense${newCount !== 1 ? "s" : ""}`}
+                {importing
+                  ? "Importing..."
+                  : `Import ${newCount} Expense${newCount !== 1 ? "s" : ""}`}
               </Button>
-              <Button variant="ghost" onClick={() => { setStep("map"); setError(""); }}>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setStep("upload");
+                  setError("");
+                }}
+              >
                 Back
               </Button>
             </div>
@@ -420,7 +596,8 @@ export default function ImportPage() {
               <CheckCircle className="h-8 w-8 text-budgetu-positive" />
               <div>
                 <p className="text-lg font-semibold text-budgetu-heading">
-                  Successfully imported {importedCount} expense{importedCount !== 1 ? "s" : ""}!
+                  Successfully imported {importedCount} expense
+                  {importedCount !== 1 ? "s" : ""}!
                 </p>
                 <p className="text-sm text-budgetu-muted">
                   Your expenses are now visible on the Expenses page.
@@ -429,7 +606,7 @@ export default function ImportPage() {
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={() => window.location.href = "/dashboard/expenses"}
+                onClick={() => (window.location.href = "/dashboard/expenses")}
                 className="bg-budgetu-accent hover:bg-budgetu-accent-hover text-white"
               >
                 View Expenses
